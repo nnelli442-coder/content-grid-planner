@@ -40,7 +40,7 @@ export function exportToPDF(publicaciones: Publicacion[], month: number, year: n
   ]);
 
   autoTable(doc, {
-    head: [['Fecha', 'Red Social', 'Tipo', 'Título', 'Copy', 'Copy Arte', 'Estado']],
+    head: [['Fecha', 'Red Social', 'Tipo', 'Título', 'Copy', 'Indicaciones para el Arte', 'Estado']],
     body: rows,
     startY: 22,
     styles: { fontSize: 8 },
