@@ -28,7 +28,7 @@ export default function PublicacionForm({ open, onClose, editData, defaultDate }
     titulo: '', descripcion: '', red_social: 'Instagram', tipo_contenido: 'Post',
     estado: 'Borrador', copy_arte: '', link_referencia: '', color: '#3B82F6',
     fecha: defaultDate || new Date().toISOString().split('T')[0],
-    cuenta_id: '' as string,
+    cuenta_id: 'none' as string,
   });
 
   useEffect(() => {
@@ -39,10 +39,10 @@ export default function PublicacionForm({ open, onClose, editData, defaultDate }
         estado: editData.estado, copy_arte: editData.copy_arte || '',
         link_referencia: editData.link_referencia || '', color: editData.color || '#3B82F6',
         fecha: editData.fecha,
-        cuenta_id: (editData as any).cuenta_id || '',
+        cuenta_id: (editData as any).cuenta_id || 'none',
       });
     } else {
-      setForm(f => ({ ...f, fecha: defaultDate || new Date().toISOString().split('T')[0], cuenta_id: '' }));
+      setForm(f => ({ ...f, fecha: defaultDate || new Date().toISOString().split('T')[0], cuenta_id: 'none' }));
     }
   }, [editData, defaultDate, open]);
 
@@ -50,7 +50,7 @@ export default function PublicacionForm({ open, onClose, editData, defaultDate }
     e.preventDefault();
     if (!user) return;
     try {
-      const payload = { ...form, cuenta_id: form.cuenta_id || null };
+      const payload = { ...form, cuenta_id: form.cuenta_id === 'none' ? null : form.cuenta_id };
       if (editData) {
         await update.mutateAsync({ id: editData.id, ...payload });
         toast.success('Publicación actualizada');
@@ -79,7 +79,7 @@ export default function PublicacionForm({ open, onClose, editData, defaultDate }
             <Select value={form.cuenta_id} onValueChange={v => setForm(f => ({ ...f, cuenta_id: v }))}>
               <SelectTrigger><SelectValue placeholder="Seleccionar cuenta..." /></SelectTrigger>
               <SelectContent>
-                <SelectItem value="">Sin cuenta</SelectItem>
+                <SelectItem value="none">Sin cuenta</SelectItem>
                 {cuentas.map(c => <SelectItem key={c.id} value={c.id}>{c.nombre}</SelectItem>)}
               </SelectContent>
             </Select>
