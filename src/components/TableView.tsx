@@ -3,10 +3,10 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Pencil, Trash2, ExternalLink } from 'lucide-react';
+import { Pencil, Trash2, ExternalLink, Copy } from 'lucide-react';
 import { REDES_SOCIALES, TIPOS_CONTENIDO, ESTADOS } from '@/hooks/usePublicaciones';
 import type { Publicacion } from '@/hooks/usePublicaciones';
-import { useDeletePublicacion } from '@/hooks/usePublicaciones';
+import { useDeletePublicacion, useDuplicatePublicacion } from '@/hooks/usePublicaciones';
 import { toast } from 'sonner';
 
 interface Props {
@@ -26,6 +26,7 @@ export default function TableView({ publicaciones, onEdit }: Props) {
   const [filterEstado, setFilterEstado] = useState('all');
   const [filterTipo, setFilterTipo] = useState('all');
   const deleteMut = useDeletePublicacion();
+  const dupMut = useDuplicatePublicacion();
 
   const filtered = publicaciones.filter(p => {
     if (filterRed !== 'all' && p.red_social !== filterRed) return false;
@@ -96,6 +97,7 @@ export default function TableView({ publicaciones, onEdit }: Props) {
                 <TableCell>
                   <div className="flex gap-1">
                     <Button variant="ghost" size="icon" onClick={() => onEdit(p)}><Pencil className="h-4 w-4" /></Button>
+                    <Button variant="ghost" size="icon" onClick={async () => { try { await dupMut.mutateAsync(p); toast.success('Duplicada'); } catch { toast.error('Error'); } }} title="Duplicar"><Copy className="h-4 w-4" /></Button>
                     <Button variant="ghost" size="icon" onClick={() => handleDelete(p.id)}><Trash2 className="h-4 w-4 text-destructive" /></Button>
                     {p.link_referencia && <a href={p.link_referencia} target="_blank" rel="noopener"><Button variant="ghost" size="icon"><ExternalLink className="h-4 w-4" /></Button></a>}
                   </div>

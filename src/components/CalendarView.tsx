@@ -1,5 +1,8 @@
-import { useMemo } from 'react';
+import { useMemo, useState, useCallback } from 'react';
 import type { Publicacion } from '@/hooks/usePublicaciones';
+import { useMovePublicacion, useDuplicatePublicacion } from '@/hooks/usePublicaciones';
+import { Copy } from 'lucide-react';
+import { toast } from 'sonner';
 
 interface Props {
   publicaciones: Publicacion[];
@@ -12,6 +15,11 @@ interface Props {
 const DIAS = ['Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb', 'Dom'];
 
 export default function CalendarView({ publicaciones, month, year, onDayClick, onEditPub }: Props) {
+  const moveMut = useMovePublicacion();
+  const dupMut = useDuplicatePublicacion();
+  const [draggedPub, setDraggedPub] = useState<Publicacion | null>(null);
+  const [dragOverDate, setDragOverDate] = useState<string | null>(null);
+
   const { days, startOffset } = useMemo(() => {
     const daysInMonth = new Date(year, month + 1, 0).getDate();
     const firstDay = new Date(year, month, 1).getDay();
@@ -29,22 +37,76 @@ export default function CalendarView({ publicaciones, month, year, onDayClick, o
     return map;
   }, [publicaciones]);
 
+  const handleDragStart = useCallback((e: React.DragEvent, pub: Publicacion) => {
+    setDraggedPub(pub);
+    e.dataTransfer.effectAllowed = 'move';
+    e.dataTransfer.setData('text/plain', pub.id);
+  }, []);
+
+  const handleDragOver = useCallback((e: React.DragEvent, dateStr: string) => {
+    e.preventDefault();
+    e.dataTransfer.dropEffect = 'move';
+    setDragOverDate(dateStr);
+  }, []);
+
+  const handleDragLeave = useCallback(() => {
+    setDragOverDate(null);
+  }, []);
+
+  const handleDrop = useCallback(async (e: React.DragEvent, dateStr: string) => {
+    e.preventDefault();
+    setDragOverDate(null);
+    if (draggedPub && draggedPub.fecha !== dateStr) {
+      try {
+        await moveMut.mutateAsync({ id: draggedPub.id, fecha: dateStr });
+        toast.success('Publicación movida');
+      } catch {
+        toast.error('Error al mover');
+      }
+    }
+    setDraggedPub(null);
+  }, [draggedPub, moveMut]);
+
+  const handleDuplicate = async (e: React.MouseEvent, pub: Publicacion) => {
+    e.stopPropagation();
+    try {
+      await dupMut.mutateAsync(pub);
+      toast.success('Publicación duplicada');
+    } catch {
+      toast.error('Error al duplicar');
+    }
+  };
+
   const cells = [];
   for (let i = 0; i < startOffset; i++) cells.push(<div key={`empty-${i}`} className="min-h-[100px] bg-muted/30 rounded-lg" />);
   for (let d = 1; d <= days; d++) {
     const dateStr = `${year}-${String(month + 1).padStart(2, '0')}-${String(d).padStart(2, '0')}`;
     const dayPubs = pubsByDay[d] || [];
     const isToday = new Date().toISOString().split('T')[0] === dateStr;
+    const isDragOver = dragOverDate === dateStr;
     cells.push(
-      <div key={d} onClick={() => onDayClick(dateStr)}
-        className={`min-h-[100px] rounded-lg border p-2 cursor-pointer transition-colors hover:border-primary/50 ${isToday ? 'border-primary bg-accent/30' : 'border-border bg-card'}`}>
+      <div key={d}
+        onClick={() => onDayClick(dateStr)}
+        onDragOver={e => handleDragOver(e, dateStr)}
+        onDragLeave={handleDragLeave}
+        onDrop={e => handleDrop(e, dateStr)}
+        className={`min-h-[100px] rounded-lg border p-2 cursor-pointer transition-all ${
+          isDragOver ? 'border-primary bg-accent/50 scale-[1.02]' :
+          isToday ? 'border-primary bg-accent/30' : 'border-border bg-card'
+        } hover:border-primary/50`}>
         <div className={`text-sm font-semibold mb-1 ${isToday ? 'text-primary' : 'text-foreground'}`}>{d}</div>
         <div className="space-y-1">
           {dayPubs.slice(0, 3).map(p => (
-            <div key={p.id} onClick={e => { e.stopPropagation(); onEditPub(p); }}
-              className="text-xs px-1.5 py-0.5 rounded truncate text-white font-medium cursor-pointer hover:opacity-80"
+            <div key={p.id}
+              draggable
+              onDragStart={e => handleDragStart(e, p)}
+              onClick={e => { e.stopPropagation(); onEditPub(p); }}
+              className="group text-xs px-1.5 py-0.5 rounded truncate text-white font-medium cursor-grab active:cursor-grabbing hover:opacity-90 flex items-center justify-between"
               style={{ backgroundColor: p.color || '#3B82F6' }}>
-              {p.titulo}
+              <span className="truncate">{p.titulo}</span>
+              <button onClick={e => handleDuplicate(e, p)} className="opacity-0 group-hover:opacity-100 ml-1 hover:scale-110 transition-all" title="Duplicar">
+                <Copy className="h-3 w-3" />
+              </button>
             </div>
           ))}
           {dayPubs.length > 3 && <div className="text-xs text-muted-foreground">+{dayPubs.length - 3} más</div>}

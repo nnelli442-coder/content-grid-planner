@@ -68,3 +68,27 @@ export function useDeletePublicacion() {
     onSuccess: () => qc.invalidateQueries({ queryKey: ['publicaciones'] }),
   });
 }
+
+export function useDuplicatePublicacion() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async (pub: Publicacion) => {
+      const { id, created_at, updated_at, ...rest } = pub;
+      const { data, error } = await supabase.from('publicaciones').insert({ ...rest, titulo: `${rest.titulo} (copia)` }).select().single();
+      if (error) throw error;
+      return data;
+    },
+    onSuccess: () => qc.invalidateQueries({ queryKey: ['publicaciones'] }),
+  });
+}
+
+export function useMovePublicacion() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async ({ id, fecha }: { id: string; fecha: string }) => {
+      const { error } = await supabase.from('publicaciones').update({ fecha }).eq('id', id);
+      if (error) throw error;
+    },
+    onSuccess: () => qc.invalidateQueries({ queryKey: ['publicaciones'] }),
+  });
+}
