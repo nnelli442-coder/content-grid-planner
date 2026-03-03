@@ -8,6 +8,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { useAuth } from '@/hooks/useAuth';
 import { useCreatePublicacion, useUpdatePublicacion, REDES_SOCIALES, TIPOS_CONTENIDO, ESTADOS, COLORES_PREDEFINIDOS } from '@/hooks/usePublicaciones';
 import type { Publicacion } from '@/hooks/usePublicaciones';
+import { useCuentas } from '@/hooks/useCuentas';
 import { toast } from 'sonner';
 import { Loader2 } from 'lucide-react';
 
@@ -22,10 +23,12 @@ export default function PublicacionForm({ open, onClose, editData, defaultDate }
   const { user } = useAuth();
   const create = useCreatePublicacion();
   const update = useUpdatePublicacion();
+  const { data: cuentas = [] } = useCuentas();
   const [form, setForm] = useState({
     titulo: '', descripcion: '', red_social: 'Instagram', tipo_contenido: 'Post',
     estado: 'Borrador', copy_arte: '', link_referencia: '', color: '#3B82F6',
     fecha: defaultDate || new Date().toISOString().split('T')[0],
+    cuenta_id: '' as string,
   });
 
   useEffect(() => {
@@ -36,9 +39,10 @@ export default function PublicacionForm({ open, onClose, editData, defaultDate }
         estado: editData.estado, copy_arte: editData.copy_arte || '',
         link_referencia: editData.link_referencia || '', color: editData.color || '#3B82F6',
         fecha: editData.fecha,
+        cuenta_id: (editData as any).cuenta_id || '',
       });
     } else {
-      setForm(f => ({ ...f, fecha: defaultDate || new Date().toISOString().split('T')[0] }));
+      setForm(f => ({ ...f, fecha: defaultDate || new Date().toISOString().split('T')[0], cuenta_id: '' }));
     }
   }, [editData, defaultDate, open]);
 
@@ -46,11 +50,12 @@ export default function PublicacionForm({ open, onClose, editData, defaultDate }
     e.preventDefault();
     if (!user) return;
     try {
+      const payload = { ...form, cuenta_id: form.cuenta_id || null };
       if (editData) {
-        await update.mutateAsync({ id: editData.id, ...form });
+        await update.mutateAsync({ id: editData.id, ...payload });
         toast.success('Publicación actualizada');
       } else {
-        await create.mutateAsync({ ...form, user_id: user.id });
+        await create.mutateAsync({ ...payload, user_id: user.id });
         toast.success('Publicación creada');
       }
       onClose();
@@ -68,6 +73,17 @@ export default function PublicacionForm({ open, onClose, editData, defaultDate }
           <DialogTitle>{editData ? 'Editar publicación' : 'Nueva publicación'}</DialogTitle>
         </DialogHeader>
         <form onSubmit={handleSubmit} className="space-y-4">
+          {/* Cuenta */}
+          <div className="space-y-2">
+            <Label>Cuenta / Cliente</Label>
+            <Select value={form.cuenta_id} onValueChange={v => setForm(f => ({ ...f, cuenta_id: v }))}>
+              <SelectTrigger><SelectValue placeholder="Seleccionar cuenta..." /></SelectTrigger>
+              <SelectContent>
+                <SelectItem value="">Sin cuenta</SelectItem>
+                {cuentas.map(c => <SelectItem key={c.id} value={c.id}>{c.nombre}</SelectItem>)}
+              </SelectContent>
+            </Select>
+          </div>
           <div className="space-y-2">
             <Label>Título</Label>
             <Input value={form.titulo} onChange={e => setForm(f => ({ ...f, titulo: e.target.value }))} required />

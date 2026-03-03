@@ -10,6 +10,7 @@ import { REDES_SOCIALES, TIPOS_CONTENIDO, ESTADOS, COLORES_PREDEFINIDOS } from '
 import type { Publicacion } from '@/hooks/usePublicaciones';
 import { useDeletePublicacion, useDuplicatePublicacion, useUpdatePublicacion, useCreatePublicacion } from '@/hooks/usePublicaciones';
 import { useAuth } from '@/hooks/useAuth';
+import { useCuentas } from '@/hooks/useCuentas';
 import { toast } from 'sonner';
 
 interface Props {
@@ -41,6 +42,7 @@ interface NewRow {
   link_referencia: string;
   estado: string;
   color: string;
+  cuenta_id: string;
 }
 
 const emptyRow = (): NewRow => ({
@@ -53,9 +55,11 @@ const emptyRow = (): NewRow => ({
   link_referencia: '',
   estado: 'Borrador',
   color: '#3B82F6',
+  cuenta_id: '',
 });
 
 const SORTABLE_FIELDS: { key: string; label: string }[] = [
+  { key: 'cuenta_id', label: 'Cuenta' },
   { key: 'fecha', label: 'Fecha' },
   { key: 'red_social', label: 'Red Social' },
   { key: 'tipo_contenido', label: 'Tipo' },
@@ -68,6 +72,8 @@ const SORTABLE_FIELDS: { key: string; label: string }[] = [
 
 export default function TableView({ publicaciones, onEdit, filterDate, onClearFilterDate, onDateClick }: Props) {
   const { user } = useAuth();
+  const { data: cuentas = [] } = useCuentas();
+  const cuentasMap = Object.fromEntries(cuentas.map(c => [c.id, c.nombre]));
   const [filterRed, setFilterRed] = useState('all');
   const [filterEstado, setFilterEstado] = useState('all');
   const [filterTipo, setFilterTipo] = useState('all');
@@ -206,7 +212,7 @@ export default function TableView({ publicaciones, onEdit, filterDate, onClearFi
     if (!row.titulo.trim()) { toast.error('El título es obligatorio'); return; }
     if (!user) return;
     try {
-      await createMut.mutateAsync({ ...row, user_id: user.id });
+      await createMut.mutateAsync({ ...row, cuenta_id: row.cuenta_id || null, user_id: user.id });
       setNewRows(prev => prev.filter((_, i) => i !== index));
       toast.success('Publicación creada');
     } catch { toast.error('Error al crear'); }
@@ -229,6 +235,20 @@ export default function TableView({ publicaciones, onEdit, filterDate, onClearFi
           </Select>
         );
       }
+      if (field === 'cuenta_id') {
+        return (
+          <Select value={editValue} onValueChange={async (v) => {
+            try { await updateMut.mutateAsync({ id: pub.id, cuenta_id: v || null }); toast.success('Actualizado'); } catch { toast.error('Error'); }
+            setEditingCell(null);
+          }}>
+            <SelectTrigger className="h-8 text-xs w-full"><SelectValue placeholder="Sin cuenta" /></SelectTrigger>
+            <SelectContent>
+              <SelectItem value="">Sin cuenta</SelectItem>
+              {cuentas.map(c => <SelectItem key={c.id} value={c.id}>{c.nombre}</SelectItem>)}
+            </SelectContent>
+          </Select>
+        );
+      }
       return (
         <Input ref={inputRef} value={editValue} onChange={e => setEditValue(e.target.value)} onKeyDown={handleKeyDown} onBlur={saveEdit} type={field === 'fecha' ? 'date' : 'text'} className="h-8 text-xs w-full" />
       );
@@ -242,6 +262,16 @@ export default function TableView({ publicaciones, onEdit, filterDate, onClearFi
           onDoubleClick={(e) => { e.stopPropagation(); startEdit(pub.id, field, value || ''); }}>
           <CalendarDays className="h-3 w-3 text-primary shrink-0" />
           <span className="text-sm truncate">{value}</span>
+        </div>
+      );
+    }
+
+    // Cuenta field: show name
+    if (field === 'cuenta_id') {
+      const nombre = value ? cuentasMap[value] || 'Desconocida' : '';
+      return (
+        <div className={`cursor-pointer hover:bg-accent/40 rounded px-1 py-0.5 min-h-[28px] flex items-center ${className || ''}`} onClick={() => startEdit(pub.id, field, value || '')} title="Click para editar">
+          <span className="text-sm truncate">{nombre || <span className="text-muted-foreground italic">sin cuenta</span>}</span>
         </div>
       );
     }
@@ -341,6 +371,15 @@ export default function TableView({ publicaciones, onEdit, filterDate, onClearFi
                 <TableCell>
                   <input type="color" value={row.color} onChange={e => updateNewRow(idx, 'color', e.target.value)} className="h-6 w-6 rounded-full cursor-pointer border-0 p-0" />
                 </TableCell>
+                <TableCell>
+                  <Select value={newRows[idx].cuenta_id} onValueChange={v => updateNewRow(idx, 'cuenta_id', v)}>
+                    <SelectTrigger className="h-8 text-xs"><SelectValue placeholder="Cuenta..." /></SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="">Sin cuenta</SelectItem>
+                      {cuentas.map(c => <SelectItem key={c.id} value={c.id}>{c.nombre}</SelectItem>)}
+                    </SelectContent>
+                  </Select>
+                </TableCell>
                 <TableCell><Input type="date" value={row.fecha} onChange={e => updateNewRow(idx, 'fecha', e.target.value)} className="h-8 text-xs" /></TableCell>
                 <TableCell>{renderNewRowSelect(idx, 'red_social', REDES_SOCIALES)}</TableCell>
                 <TableCell>{renderNewRowSelect(idx, 'tipo_contenido', TIPOS_CONTENIDO)}</TableCell>
@@ -359,7 +398,7 @@ export default function TableView({ publicaciones, onEdit, filterDate, onClearFi
             ))}
 
             {filtered.length === 0 && newRows.length === 0 ? (
-              <TableRow><TableCell colSpan={11} className="text-center py-8 text-muted-foreground">No hay publicaciones. Haz click en "Agregar fila" para comenzar.</TableCell></TableRow>
+              <TableRow><TableCell colSpan={12} className="text-center py-8 text-muted-foreground">No hay publicaciones. Haz click en "Agregar fila" para comenzar.</TableCell></TableRow>
             ) : filtered.map(p => (
               <TableRow key={p.id} className={`hover:bg-accent/20 ${selectedIds.has(p.id) ? 'bg-accent/30' : ''}`}>
                 <TableCell>
@@ -374,6 +413,7 @@ export default function TableView({ publicaciones, onEdit, filterDate, onClearFi
                       input.click();
                     }} />
                 </TableCell>
+                <TableCell>{renderEditableCell(p, 'cuenta_id', (p as any).cuenta_id || '')}</TableCell>
                 <TableCell>{renderEditableCell(p, 'fecha', p.fecha)}</TableCell>
                 <TableCell>{renderEditableCell(p, 'red_social', p.red_social)}</TableCell>
                 <TableCell>{renderEditableCell(p, 'tipo_contenido', p.tipo_contenido)}</TableCell>
