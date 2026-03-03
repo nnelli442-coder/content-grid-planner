@@ -1,10 +1,11 @@
 import { useState, useRef, useEffect } from 'react';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Input } from '@/components/ui/input';
-import { Textarea } from '@/components/ui/textarea';
 import type { Publicacion } from '@/hooks/usePublicaciones';
 import { useUpdatePublicacion } from '@/hooks/usePublicaciones';
+import { useAuth } from '@/hooks/useAuth';
 import { toast } from 'sonner';
+import PublicacionDetailDrawer from '@/components/PublicacionDetailDrawer';
 
 interface Props {
   publicaciones: Publicacion[];
@@ -28,10 +29,13 @@ const FIELDS = [
 ];
 
 export default function EjecucionView({ publicaciones }: Props) {
+  const { isAdmin } = useAuth();
   const updateMut = useUpdatePublicacion();
   const [editingCell, setEditingCell] = useState<EditingCell>(null);
   const [editValue, setEditValue] = useState('');
   const inputRef = useRef<HTMLInputElement>(null);
+  const [drawerPub, setDrawerPub] = useState<Publicacion | null>(null);
+  const [drawerField, setDrawerField] = useState<string | null>(null);
 
   useEffect(() => {
     if (editingCell && inputRef.current) {
@@ -39,11 +43,6 @@ export default function EjecucionView({ publicaciones }: Props) {
       inputRef.current.select();
     }
   }, [editingCell]);
-
-  const startEdit = (id: string, field: string, value: string) => {
-    setEditingCell({ id, field });
-    setEditValue(value);
-  };
 
   const saveEdit = async () => {
     if (!editingCell) return;
@@ -67,7 +66,10 @@ export default function EjecucionView({ publicaciones }: Props) {
 
   return (
     <div className="space-y-4">
-      <p className="text-xs text-muted-foreground">Nivel operativo: copys, referencias visuales, hashtags, presupuesto y segmentación. Click en cualquier celda para editar.</p>
+      <p className="text-xs text-muted-foreground">
+        Nivel operativo: copys, referencias visuales, hashtags, presupuesto y segmentación.
+        {isAdmin ? ' Doble click para editar, click para ver detalles.' : ' Click en cualquier celda para ver detalles.'}
+      </p>
       <div className="rounded-lg border overflow-x-auto">
         <Table>
           <TableHeader>
@@ -87,7 +89,7 @@ export default function EjecucionView({ publicaciones }: Props) {
                   if (f.key === 'titulo') {
                     return (
                       <TableCell key={f.key}>
-                        <div className="flex items-center gap-2">
+                        <div className="flex items-center gap-2 cursor-pointer" onClick={() => { setDrawerPub(p); setDrawerField('titulo'); }}>
                           <div className="h-3 w-3 rounded-full shrink-0" style={{ backgroundColor: p.color || '#3B82F6' }} />
                           <span className="text-sm font-medium truncate">{p.titulo}</span>
                         </div>
@@ -102,15 +104,10 @@ export default function EjecucionView({ publicaciones }: Props) {
                   if (isEditing) {
                     return (
                       <TableCell key={f.key}>
-                        <Input
-                          ref={inputRef}
-                          value={editValue}
-                          onChange={e => setEditValue(e.target.value)}
-                          onKeyDown={handleKeyDown}
-                          onBlur={saveEdit}
+                        <Input ref={inputRef} value={editValue} onChange={e => setEditValue(e.target.value)}
+                          onKeyDown={handleKeyDown} onBlur={saveEdit}
                           type={f.key === 'presupuesto' ? 'number' : 'text'}
-                          className="h-8 text-xs w-full"
-                        />
+                          className="h-8 text-xs w-full" />
                       </TableCell>
                     );
                   }
@@ -119,8 +116,9 @@ export default function EjecucionView({ publicaciones }: Props) {
                     <TableCell key={f.key}>
                       <div
                         className="cursor-pointer hover:bg-accent/40 rounded px-1 py-0.5 min-h-[28px] flex items-center"
-                        onClick={() => startEdit(p.id, f.key, val)}
-                        title="Click para editar"
+                        onClick={() => { setDrawerPub(p); setDrawerField(f.key); }}
+                        onDoubleClick={() => { if (isAdmin) { setEditingCell({ id: p.id, field: f.key }); setEditValue(val); } }}
+                        title={isAdmin ? 'Click para ver, doble click para editar' : 'Click para ver detalles'}
                       >
                         <span className="text-sm truncate max-w-[200px]">
                           {val || <span className="text-muted-foreground italic">vacío</span>}
@@ -134,6 +132,13 @@ export default function EjecucionView({ publicaciones }: Props) {
           </TableBody>
         </Table>
       </div>
+
+      <PublicacionDetailDrawer
+        open={!!drawerPub}
+        onClose={() => { setDrawerPub(null); setDrawerField(null); }}
+        publicacion={drawerPub}
+        highlightField={drawerField}
+      />
     </div>
   );
 }
