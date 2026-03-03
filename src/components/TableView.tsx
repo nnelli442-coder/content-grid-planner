@@ -12,6 +12,7 @@ import { useDeletePublicacion, useDuplicatePublicacion, useUpdatePublicacion, us
 import { useAuth } from '@/hooks/useAuth';
 import { useCuentas } from '@/hooks/useCuentas';
 import { toast } from 'sonner';
+import PublicacionDetailDrawer from '@/components/PublicacionDetailDrawer';
 
 interface Props {
   publicaciones: Publicacion[];
@@ -94,7 +95,7 @@ const SELECT_FIELDS: Record<string, readonly string[]> = {
 };
 
 export default function TableView({ publicaciones, onEdit, filterDate, onClearFilterDate, onDateClick }: Props) {
-  const { user } = useAuth();
+  const { user, isAdmin } = useAuth();
   const { data: cuentas = [] } = useCuentas();
   const cuentasMap = Object.fromEntries(cuentas.map(c => [c.id, c.nombre]));
   const [filterRed, setFilterRed] = useState('all');
@@ -111,6 +112,13 @@ export default function TableView({ publicaciones, onEdit, filterDate, onClearFi
   const inputRef = useRef<HTMLInputElement>(null);
   const [sort, setSort] = useState<SortConfig>({ field: 'fecha', dir: 'asc' });
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
+  const [drawerPub, setDrawerPub] = useState<Publicacion | null>(null);
+  const [drawerField, setDrawerField] = useState<string | null>(null);
+
+  const openDrawer = (pub: Publicacion, field: string) => {
+    setDrawerPub(pub);
+    setDrawerField(field);
+  };
 
   const filtered = useMemo(() => {
     let result = publicaciones.filter(p => {
@@ -215,7 +223,8 @@ export default function TableView({ publicaciones, onEdit, filterDate, onClearFi
     if (field === 'fecha' && onDateClick) {
       return (
         <div className="cursor-pointer hover:bg-accent/40 rounded px-1 py-0.5 min-h-[28px] flex items-center gap-1"
-          onClick={() => onDateClick(value)} onDoubleClick={(e) => { e.stopPropagation(); setEditingCell({ id: pub.id, field }); setEditValue(value || ''); }}>
+          onClick={() => openDrawer(pub, field)}
+          onDoubleClick={(e) => { e.stopPropagation(); if (isAdmin) { setEditingCell({ id: pub.id, field }); setEditValue(value || ''); } }}>
           <CalendarDays className="h-3 w-3 text-primary shrink-0" /><span className="text-sm truncate">{value}</span>
         </div>
       );
@@ -223,14 +232,19 @@ export default function TableView({ publicaciones, onEdit, filterDate, onClearFi
     if (field === 'cuenta_id') {
       const nombre = value ? cuentasMap[value] || 'Desconocida' : '';
       return (
-        <div className="cursor-pointer hover:bg-accent/40 rounded px-1 py-0.5 min-h-[28px] flex items-center" onClick={() => { setEditingCell({ id: pub.id, field }); setEditValue(value || ''); }}>
+        <div className="cursor-pointer hover:bg-accent/40 rounded px-1 py-0.5 min-h-[28px] flex items-center"
+          onClick={() => openDrawer(pub, field)}
+          onDoubleClick={() => { if (isAdmin) { setEditingCell({ id: pub.id, field }); setEditValue(value || ''); } }}>
           <span className="text-sm truncate">{nombre || <span className="text-muted-foreground italic">sin cuenta</span>}</span>
         </div>
       );
     }
 
     return (
-      <div className={`cursor-pointer hover:bg-accent/40 rounded px-1 py-0.5 min-h-[28px] flex items-center ${className || ''}`} onClick={() => { setEditingCell({ id: pub.id, field }); setEditValue(value || ''); }} title="Click para editar">
+      <div className={`cursor-pointer hover:bg-accent/40 rounded px-1 py-0.5 min-h-[28px] flex items-center ${className || ''}`}
+        onClick={() => openDrawer(pub, field)}
+        onDoubleClick={() => { if (isAdmin) { setEditingCell({ id: pub.id, field }); setEditValue(value || ''); } }}
+        title={isAdmin ? "Click para ver, doble click para editar" : "Click para ver detalles"}>
         {field === 'estado' ? <Badge variant={estadoVariant(value)} className="cursor-pointer">{value}</Badge> :
           <span className="text-sm truncate">{value || <span className="text-muted-foreground italic">vacío</span>}</span>}
       </div>
@@ -356,6 +370,13 @@ export default function TableView({ publicaciones, onEdit, filterDate, onClearFi
           </TableBody>
         </Table>
       </div>
+
+      <PublicacionDetailDrawer
+        open={!!drawerPub}
+        onClose={() => { setDrawerPub(null); setDrawerField(null); }}
+        publicacion={drawerPub}
+        highlightField={drawerField}
+      />
     </div>
   );
 }

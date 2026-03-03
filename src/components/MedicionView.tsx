@@ -1,12 +1,13 @@
 import { useState, useRef, useEffect, useMemo } from 'react';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Input } from '@/components/ui/input';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
+import { Card, CardContent } from '@/components/ui/card';
 import type { Publicacion } from '@/hooks/usePublicaciones';
 import { useUpdatePublicacion } from '@/hooks/usePublicaciones';
+import { useAuth } from '@/hooks/useAuth';
 import { toast } from 'sonner';
 import { TrendingUp, Eye, MousePointer, Heart } from 'lucide-react';
+import PublicacionDetailDrawer from '@/components/PublicacionDetailDrawer';
 
 interface Props {
   publicaciones: Publicacion[];
@@ -30,10 +31,13 @@ const METRIC_FIELDS = [
 ];
 
 export default function MedicionView({ publicaciones }: Props) {
+  const { isAdmin } = useAuth();
   const updateMut = useUpdatePublicacion();
   const [editingCell, setEditingCell] = useState<EditingCell>(null);
   const [editValue, setEditValue] = useState('');
   const inputRef = useRef<HTMLInputElement>(null);
+  const [drawerPub, setDrawerPub] = useState<Publicacion | null>(null);
+  const [drawerField, setDrawerField] = useState<string | null>(null);
 
   useEffect(() => {
     if (editingCell && inputRef.current) {
@@ -77,7 +81,6 @@ export default function MedicionView({ publicaciones }: Props) {
 
   return (
     <div className="space-y-6">
-      {/* Summary cards */}
       <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-3">
         <Card><CardContent className="pt-4 pb-3 px-4">
           <div className="flex items-center gap-2 mb-1"><Eye className="h-3.5 w-3.5 text-primary" /><span className="text-xs text-muted-foreground">Alcance</span></div>
@@ -105,7 +108,9 @@ export default function MedicionView({ publicaciones }: Props) {
         </CardContent></Card>
       </div>
 
-      <p className="text-xs text-muted-foreground">Ingresa los resultados post-publicación. Click en cualquier celda numérica para editar.</p>
+      <p className="text-xs text-muted-foreground">
+        {isAdmin ? 'Doble click para editar métricas, click para ver detalles.' : 'Click en cualquier celda para ver detalles del post.'}
+      </p>
 
       <div className="rounded-lg border overflow-x-auto">
         <Table>
@@ -127,7 +132,7 @@ export default function MedicionView({ publicaciones }: Props) {
                   if (f.key === 'titulo') {
                     return (
                       <TableCell key={f.key}>
-                        <div className="flex items-center gap-2">
+                        <div className="flex items-center gap-2 cursor-pointer" onClick={() => { setDrawerPub(p); setDrawerField('titulo'); }}>
                           <div className="h-3 w-3 rounded-full shrink-0" style={{ backgroundColor: p.color || '#3B82F6' }} />
                           <span className="text-sm font-medium truncate">{p.titulo}</span>
                         </div>
@@ -152,8 +157,9 @@ export default function MedicionView({ publicaciones }: Props) {
                   return (
                     <TableCell key={f.key}>
                       <div className="cursor-pointer hover:bg-accent/40 rounded px-1 py-0.5 min-h-[28px] flex items-center"
-                        onClick={() => { setEditingCell({ id: p.id, field: f.key }); setEditValue(displayVal); }}
-                        title="Click para editar">
+                        onClick={() => { setDrawerPub(p); setDrawerField(f.key); }}
+                        onDoubleClick={() => { if (isAdmin) { setEditingCell({ id: p.id, field: f.key }); setEditValue(displayVal); } }}
+                        title={isAdmin ? 'Click para ver, doble click para editar' : 'Click para ver detalles'}>
                         <span className="text-sm">{displayVal || <span className="text-muted-foreground italic">—</span>}</span>
                       </div>
                     </TableCell>
@@ -164,6 +170,13 @@ export default function MedicionView({ publicaciones }: Props) {
           </TableBody>
         </Table>
       </div>
+
+      <PublicacionDetailDrawer
+        open={!!drawerPub}
+        onClose={() => { setDrawerPub(null); setDrawerField(null); }}
+        publicacion={drawerPub}
+        highlightField={drawerField}
+      />
     </div>
   );
 }
