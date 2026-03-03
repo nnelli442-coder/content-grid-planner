@@ -35,6 +35,54 @@ export type Database = {
         }
         Relationships: []
       }
+      estrategias: {
+        Row: {
+          anio: number
+          concepto_creativo: string | null
+          created_at: string
+          dolor_necesidad: string | null
+          id: string
+          mensaje_rector: string | null
+          mes: number
+          objetivo_general: string | null
+          objetivos_especificos: string | null
+          segmento_principal: string | null
+          segmento_secundario: string | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          anio: number
+          concepto_creativo?: string | null
+          created_at?: string
+          dolor_necesidad?: string | null
+          id?: string
+          mensaje_rector?: string | null
+          mes: number
+          objetivo_general?: string | null
+          objetivos_especificos?: string | null
+          segmento_principal?: string | null
+          segmento_secundario?: string | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          anio?: number
+          concepto_creativo?: string | null
+          created_at?: string
+          dolor_necesidad?: string | null
+          id?: string
+          mensaje_rector?: string | null
+          mes?: number
+          objetivo_general?: string | null
+          objetivos_especificos?: string | null
+          segmento_principal?: string | null
+          segmento_secundario?: string | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       profiles: {
         Row: {
           created_at: string
@@ -64,52 +112,121 @@ export type Database = {
       }
       publicaciones: {
         Row: {
+          alcance: number | null
+          campana: string | null
+          clics: number | null
           color: string | null
+          compartidos: number | null
           copy_arte: string | null
+          copy_caption: string | null
+          costo: number | null
+          costo_por_resultado: number | null
           created_at: string
+          cta_texto: string | null
           cuenta_id: string | null
           descripcion: string | null
+          duracion: string | null
+          engagement: number | null
+          er_porcentaje: number | null
           estado: string
+          etapa_funnel: string | null
           fecha: string
+          guardados: number | null
+          hashtags: string | null
+          hook: string | null
           id: string
+          impresiones: number | null
           indicaciones_arte: string | null
           link_referencia: string | null
+          objetivo_post: string | null
+          pilar_contenido: string | null
+          presupuesto: number | null
           red_social: string
+          referencia_visual: string | null
+          segmentacion: string | null
+          seguidores_nuevos: number | null
           tipo_contenido: string
+          tipo_pauta: string | null
           titulo: string
           updated_at: string
           user_id: string
         }
         Insert: {
+          alcance?: number | null
+          campana?: string | null
+          clics?: number | null
           color?: string | null
+          compartidos?: number | null
           copy_arte?: string | null
+          copy_caption?: string | null
+          costo?: number | null
+          costo_por_resultado?: number | null
           created_at?: string
+          cta_texto?: string | null
           cuenta_id?: string | null
           descripcion?: string | null
+          duracion?: string | null
+          engagement?: number | null
+          er_porcentaje?: number | null
           estado?: string
+          etapa_funnel?: string | null
           fecha: string
+          guardados?: number | null
+          hashtags?: string | null
+          hook?: string | null
           id?: string
+          impresiones?: number | null
           indicaciones_arte?: string | null
           link_referencia?: string | null
+          objetivo_post?: string | null
+          pilar_contenido?: string | null
+          presupuesto?: number | null
           red_social: string
+          referencia_visual?: string | null
+          segmentacion?: string | null
+          seguidores_nuevos?: number | null
           tipo_contenido: string
+          tipo_pauta?: string | null
           titulo: string
           updated_at?: string
           user_id: string
         }
         Update: {
+          alcance?: number | null
+          campana?: string | null
+          clics?: number | null
           color?: string | null
+          compartidos?: number | null
           copy_arte?: string | null
+          copy_caption?: string | null
+          costo?: number | null
+          costo_por_resultado?: number | null
           created_at?: string
+          cta_texto?: string | null
           cuenta_id?: string | null
           descripcion?: string | null
+          duracion?: string | null
+          engagement?: number | null
+          er_porcentaje?: number | null
           estado?: string
+          etapa_funnel?: string | null
           fecha?: string
+          guardados?: number | null
+          hashtags?: string | null
+          hook?: string | null
           id?: string
+          impresiones?: number | null
           indicaciones_arte?: string | null
           link_referencia?: string | null
+          objetivo_post?: string | null
+          pilar_contenido?: string | null
+          presupuesto?: number | null
           red_social?: string
+          referencia_visual?: string | null
+          segmentacion?: string | null
+          seguidores_nuevos?: number | null
           tipo_contenido?: string
+          tipo_pauta?: string | null
           titulo?: string
           updated_at?: string
           user_id?: string
