@@ -55,7 +55,7 @@ const emptyRow = (): NewRow => ({
   link_referencia: '',
   estado: 'Borrador',
   color: '#3B82F6',
-  cuenta_id: '',
+  cuenta_id: 'none',
 });
 
 const SORTABLE_FIELDS: { key: string; label: string }[] = [
@@ -212,7 +212,7 @@ export default function TableView({ publicaciones, onEdit, filterDate, onClearFi
     if (!row.titulo.trim()) { toast.error('El título es obligatorio'); return; }
     if (!user) return;
     try {
-      await createMut.mutateAsync({ ...row, cuenta_id: row.cuenta_id || null, user_id: user.id });
+      await createMut.mutateAsync({ ...row, cuenta_id: row.cuenta_id === 'none' ? null : row.cuenta_id, user_id: user.id });
       setNewRows(prev => prev.filter((_, i) => i !== index));
       toast.success('Publicación creada');
     } catch { toast.error('Error al crear'); }
@@ -237,13 +237,13 @@ export default function TableView({ publicaciones, onEdit, filterDate, onClearFi
       }
       if (field === 'cuenta_id') {
         return (
-          <Select value={editValue} onValueChange={async (v) => {
-            try { await updateMut.mutateAsync({ id: pub.id, cuenta_id: v || null }); toast.success('Actualizado'); } catch { toast.error('Error'); }
+          <Select value={editValue || 'none'} onValueChange={async (v) => {
+            try { await updateMut.mutateAsync({ id: pub.id, cuenta_id: v === 'none' ? null : v }); toast.success('Actualizado'); } catch { toast.error('Error'); }
             setEditingCell(null);
           }}>
             <SelectTrigger className="h-8 text-xs w-full"><SelectValue placeholder="Sin cuenta" /></SelectTrigger>
             <SelectContent>
-              <SelectItem value="">Sin cuenta</SelectItem>
+              <SelectItem value="none">Sin cuenta</SelectItem>
               {cuentas.map(c => <SelectItem key={c.id} value={c.id}>{c.nombre}</SelectItem>)}
             </SelectContent>
           </Select>
@@ -375,7 +375,7 @@ export default function TableView({ publicaciones, onEdit, filterDate, onClearFi
                   <Select value={newRows[idx].cuenta_id} onValueChange={v => updateNewRow(idx, 'cuenta_id', v)}>
                     <SelectTrigger className="h-8 text-xs"><SelectValue placeholder="Cuenta..." /></SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="">Sin cuenta</SelectItem>
+                      <SelectItem value="none">Sin cuenta</SelectItem>
                       {cuentas.map(c => <SelectItem key={c.id} value={c.id}>{c.nombre}</SelectItem>)}
                     </SelectContent>
                   </Select>
