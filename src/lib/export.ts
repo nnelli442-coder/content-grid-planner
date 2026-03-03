@@ -78,8 +78,8 @@ export function exportToPDF(publicaciones: Publicacion[], month: number, year: n
     p.red_social,
     (p as any).tipo_pauta || '',
     (p as any).etapa_funnel || '',
-    ((p as any).hook || '').substring(0, 30),
-    ((p as any).cta_texto || '').substring(0, 30),
+    (p as any).hook || '',
+    (p as any).cta_texto || '',
     p.estado,
   ]);
 
@@ -87,8 +87,9 @@ export function exportToPDF(publicaciones: Publicacion[], month: number, year: n
     head: [['Fecha', 'Campaña', 'Objetivo', 'Pilar', 'Formato', 'Canal', 'Tipo', 'Funnel', 'Hook', 'CTA', 'Estado']],
     body: planRows,
     startY: 28,
-    styles: { fontSize: 7 },
+    styles: { fontSize: 7, cellWidth: 'wrap', overflow: 'linebreak' },
     headStyles: { fillColor: [99, 102, 241] },
+    columnStyles: { 8: { cellWidth: 35 }, 9: { cellWidth: 35 } },
   });
 
   // Page 2: Ejecución
@@ -97,12 +98,12 @@ export function exportToPDF(publicaciones: Publicacion[], month: number, year: n
   doc.text('Ejecución', 14, 15);
 
   const ejecRows = publicaciones.map(p => [
-    p.titulo.substring(0, 20),
+    p.titulo,
     p.fecha,
-    (p.copy_arte || '').substring(0, 30),
-    ((p as any).copy_caption || '').substring(0, 30),
-    ((p as any).indicaciones_arte || '').substring(0, 30),
-    ((p as any).hashtags || '').substring(0, 30),
+    p.copy_arte || '',
+    (p as any).copy_caption || '',
+    (p as any).indicaciones_arte || '',
+    (p as any).hashtags || '',
     (p as any).duracion || '',
     (p as any).presupuesto || '',
   ]);
@@ -111,8 +112,9 @@ export function exportToPDF(publicaciones: Publicacion[], month: number, year: n
     head: [['Título', 'Fecha', 'Copy Arte', 'Copy Caption', 'Indicaciones Arte', 'Hashtags', 'Duración', 'Presupuesto']],
     body: ejecRows,
     startY: 20,
-    styles: { fontSize: 7 },
+    styles: { fontSize: 7, cellWidth: 'wrap', overflow: 'linebreak' },
     headStyles: { fillColor: [236, 72, 153] },
+    columnStyles: { 2: { cellWidth: 45 }, 3: { cellWidth: 45 }, 4: { cellWidth: 40 } },
   });
 
   // Page 3: Medición
@@ -121,7 +123,7 @@ export function exportToPDF(publicaciones: Publicacion[], month: number, year: n
   doc.text('Medición', 14, 15);
 
   const medRows = publicaciones.map(p => [
-    p.titulo.substring(0, 20),
+    p.titulo,
     p.fecha,
     (p as any).alcance || '',
     (p as any).impresiones || '',
@@ -138,7 +140,7 @@ export function exportToPDF(publicaciones: Publicacion[], month: number, year: n
     head: [['Título', 'Fecha', 'Alcance', 'Impresiones', 'Engagement', 'ER%', 'Guardados', 'Compartidos', 'Clics', 'Costo', 'CPR']],
     body: medRows,
     startY: 20,
-    styles: { fontSize: 7 },
+    styles: { fontSize: 7, cellWidth: 'wrap', overflow: 'linebreak' },
     headStyles: { fillColor: [16, 185, 129] },
   });
 
