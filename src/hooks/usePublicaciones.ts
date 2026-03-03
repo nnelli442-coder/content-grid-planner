@@ -8,7 +8,12 @@ export type PublicacionUpdate = TablesUpdate<'publicaciones'>;
 
 export const REDES_SOCIALES = ['Instagram', 'Facebook', 'TikTok', 'Twitter/X', 'LinkedIn', 'YouTube', 'Pinterest'] as const;
 export const TIPOS_CONTENIDO = ['Post', 'Reel', 'Story', 'Carrusel', 'Video', 'Live', 'Blog', 'Newsletter'] as const;
-export const ESTADOS = ['Borrador', 'En revisión', 'Aprobado', 'Publicado', 'Rechazado'] as const;
+export const ESTADOS = ['En planeación', 'En diseño', 'En revisión', 'Programado', 'Publicado'] as const;
+export const OBJETIVOS_POST = ['Engagement', 'Humanización', 'Venta', 'Educación', 'Reconocimiento'] as const;
+export const PILARES_CONTENIDO = ['Comunidad', 'Experiencia', 'Beneficios', 'Testimonios', 'Autoridad', 'Entretenimiento'] as const;
+export const ETAPAS_FUNNEL = ['Descubrimiento', 'Consideración', 'Conversión', 'Fidelización'] as const;
+export const TIPOS_PAUTA = ['Orgánico', 'Pauta', 'Mixto'] as const;
+
 export const COLORES_PREDEFINIDOS = [
   '#3B82F6', '#EF4444', '#10B981', '#F59E0B', '#8B5CF6',
   '#EC4899', '#06B6D4', '#F97316', '#6366F1', '#14B8A6',

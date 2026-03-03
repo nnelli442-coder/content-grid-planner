@@ -1,7 +1,7 @@
 import { useMemo, useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { ChevronLeft, ChevronRight, Pencil, Trash2 } from 'lucide-react';
+import { ChevronLeft, ChevronRight } from 'lucide-react';
 import type { Publicacion } from '@/hooks/usePublicaciones';
 import { useDeletePublicacion } from '@/hooks/usePublicaciones';
 import { toast } from 'sonner';
@@ -40,11 +40,6 @@ export default function WeeklyView({ publicaciones, month, year, onDayClick, onE
     return map;
   }, [publicaciones]);
 
-  const handleDelete = async (id: string) => {
-    if (!confirm('¿Eliminar?')) return;
-    try { await deleteMut.mutateAsync(id); toast.success('Eliminada'); } catch { toast.error('Error'); }
-  };
-
   return (
     <div className="space-y-4">
       <div className="flex items-center justify-between">
@@ -70,6 +65,7 @@ export default function WeeklyView({ publicaciones, month, year, onDayClick, onE
                     onClick={e => { e.stopPropagation(); onEditPub(p); }}>
                     <div className="font-semibold truncate">{p.titulo}</div>
                     <div className="opacity-80">{p.red_social} · {p.tipo_contenido}</div>
+                    {(p as any).campana && <div className="opacity-70 truncate">{(p as any).campana}</div>}
                     <Badge variant="outline" className="text-[10px] border-white/40 text-white">{p.estado}</Badge>
                   </div>
                 ))}

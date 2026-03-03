@@ -2,6 +2,7 @@ import { useMemo, useState, useCallback } from 'react';
 import type { Publicacion } from '@/hooks/usePublicaciones';
 import { useMovePublicacion, useDuplicatePublicacion } from '@/hooks/usePublicaciones';
 import { Copy, Plus } from 'lucide-react';
+import { Badge } from '@/components/ui/badge';
 import { toast } from 'sonner';
 
 interface Props {
@@ -94,12 +95,18 @@ export default function CalendarView({ publicaciones, month, year, onDayClick, o
         <div className="space-y-1">
           {dayPubs.slice(0, 3).map(p => (
             <div key={p.id} draggable onDragStart={e => handleDragStart(e, p)} onClick={e => { e.stopPropagation(); onEditPub(p); }}
-              className="group text-xs px-1.5 py-0.5 rounded truncate text-white font-medium cursor-grab active:cursor-grabbing hover:opacity-90 flex items-center justify-between"
+              className="group text-xs px-1.5 py-1 rounded text-white font-medium cursor-grab active:cursor-grabbing hover:opacity-90"
               style={{ backgroundColor: p.color || '#3B82F6' }}>
-              <span className="truncate">{p.titulo}</span>
-              <button onClick={e => handleDuplicate(e, p)} className="opacity-0 group-hover:opacity-100 ml-1 hover:scale-110 transition-all" title="Duplicar">
-                <Copy className="h-3 w-3" />
-              </button>
+              <div className="flex items-center justify-between">
+                <span className="truncate">{p.titulo}</span>
+                <button onClick={e => handleDuplicate(e, p)} className="opacity-0 group-hover:opacity-100 ml-1 hover:scale-110 transition-all" title="Duplicar">
+                  <Copy className="h-3 w-3" />
+                </button>
+              </div>
+              <div className="opacity-80 truncate text-[10px]">
+                {p.red_social} · {p.tipo_contenido}
+                {(p as any).campana && ` · ${(p as any).campana}`}
+              </div>
             </div>
           ))}
           {dayPubs.length > 3 && <div className="text-xs text-muted-foreground">+{dayPubs.length - 3} más</div>}
@@ -110,7 +117,7 @@ export default function CalendarView({ publicaciones, month, year, onDayClick, o
 
   return (
     <div>
-      <p className="text-xs text-muted-foreground mb-2">Click en un día para ver sus publicaciones en la tabla. Arrastra publicaciones para mover de fecha.</p>
+      <p className="text-xs text-muted-foreground mb-2">Click en un día para ver en la tabla. Arrastra publicaciones para mover de fecha.</p>
       <div className="grid grid-cols-7 gap-1 mb-1">
         {DIAS.map(d => <div key={d} className="text-center text-xs font-semibold text-muted-foreground py-2">{d}</div>)}
       </div>

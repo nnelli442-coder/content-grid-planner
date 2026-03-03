@@ -5,8 +5,9 @@ import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Separator } from '@/components/ui/separator';
 import { useAuth } from '@/hooks/useAuth';
-import { useCreatePublicacion, useUpdatePublicacion, REDES_SOCIALES, TIPOS_CONTENIDO, ESTADOS, COLORES_PREDEFINIDOS } from '@/hooks/usePublicaciones';
+import { useCreatePublicacion, useUpdatePublicacion, REDES_SOCIALES, TIPOS_CONTENIDO, ESTADOS, OBJETIVOS_POST, PILARES_CONTENIDO, ETAPAS_FUNNEL, TIPOS_PAUTA, COLORES_PREDEFINIDOS } from '@/hooks/usePublicaciones';
 import type { Publicacion } from '@/hooks/usePublicaciones';
 import { useCuentas } from '@/hooks/useCuentas';
 import { toast } from 'sonner';
@@ -26,24 +27,43 @@ export default function PublicacionForm({ open, onClose, editData, defaultDate }
   const { data: cuentas = [] } = useCuentas();
   const [form, setForm] = useState({
     titulo: '', descripcion: '', red_social: 'Instagram', tipo_contenido: 'Post',
-    estado: 'Borrador', copy_arte: '', indicaciones_arte: '', link_referencia: '', color: '#3B82F6',
+    estado: 'En planeación', copy_arte: '', indicaciones_arte: '', link_referencia: '', color: '#3B82F6',
     fecha: defaultDate || new Date().toISOString().split('T')[0],
     cuenta_id: 'none' as string,
+    campana: '', objetivo_post: 'Engagement', pilar_contenido: 'Comunidad',
+    etapa_funnel: 'Descubrimiento', hook: '', cta_texto: '', tipo_pauta: 'Orgánico',
+    copy_caption: '', referencia_visual: '', hashtags: '', duracion: '',
+    presupuesto: '', segmentacion: '',
   });
 
   useEffect(() => {
     if (editData) {
+      const p = editData as any;
       setForm({
-        titulo: editData.titulo, descripcion: editData.descripcion || '',
-        red_social: editData.red_social, tipo_contenido: editData.tipo_contenido,
-        estado: editData.estado, copy_arte: editData.copy_arte || '',
-        indicaciones_arte: (editData as any).indicaciones_arte || '',
-        link_referencia: editData.link_referencia || '', color: editData.color || '#3B82F6',
-        fecha: editData.fecha,
-        cuenta_id: (editData as any).cuenta_id || 'none',
+        titulo: p.titulo, descripcion: p.descripcion || '',
+        red_social: p.red_social, tipo_contenido: p.tipo_contenido,
+        estado: p.estado, copy_arte: p.copy_arte || '',
+        indicaciones_arte: p.indicaciones_arte || '',
+        link_referencia: p.link_referencia || '', color: p.color || '#3B82F6',
+        fecha: p.fecha, cuenta_id: p.cuenta_id || 'none',
+        campana: p.campana || '', objetivo_post: p.objetivo_post || 'Engagement',
+        pilar_contenido: p.pilar_contenido || 'Comunidad',
+        etapa_funnel: p.etapa_funnel || 'Descubrimiento',
+        hook: p.hook || '', cta_texto: p.cta_texto || '',
+        tipo_pauta: p.tipo_pauta || 'Orgánico',
+        copy_caption: p.copy_caption || '', referencia_visual: p.referencia_visual || '',
+        hashtags: p.hashtags || '', duracion: p.duracion || '',
+        presupuesto: p.presupuesto != null ? String(p.presupuesto) : '',
+        segmentacion: p.segmentacion || '',
       });
     } else {
-      setForm(f => ({ ...f, fecha: defaultDate || new Date().toISOString().split('T')[0], cuenta_id: 'none' }));
+      setForm(f => ({
+        ...f, titulo: '', descripcion: '', copy_arte: '', indicaciones_arte: '',
+        link_referencia: '', campana: '', hook: '', cta_texto: '',
+        copy_caption: '', referencia_visual: '', hashtags: '', duracion: '',
+        presupuesto: '', segmentacion: '',
+        fecha: defaultDate || new Date().toISOString().split('T')[0], cuenta_id: 'none',
+      }));
     }
   }, [editData, defaultDate, open]);
 
@@ -51,7 +71,11 @@ export default function PublicacionForm({ open, onClose, editData, defaultDate }
     e.preventDefault();
     if (!user) return;
     try {
-      const payload = { ...form, cuenta_id: form.cuenta_id === 'none' ? null : form.cuenta_id };
+      const payload: any = {
+        ...form,
+        cuenta_id: form.cuenta_id === 'none' ? null : form.cuenta_id,
+        presupuesto: form.presupuesto ? Number(form.presupuesto) : null,
+      };
       if (editData) {
         await update.mutateAsync({ id: editData.id, ...payload });
         toast.success('Publicación actualizada');
@@ -60,91 +84,182 @@ export default function PublicacionForm({ open, onClose, editData, defaultDate }
         toast.success('Publicación creada');
       }
       onClose();
-    } catch {
-      toast.error('Error al guardar');
-    }
+    } catch { toast.error('Error al guardar'); }
   };
 
   const isPending = create.isPending || update.isPending;
+  const set = (field: string, value: string) => setForm(f => ({ ...f, [field]: value }));
 
   return (
     <Dialog open={open} onOpenChange={o => !o && onClose()}>
-      <DialogContent className="max-w-lg max-h-[90vh] overflow-y-auto">
+      <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle>{editData ? 'Editar publicación' : 'Nueva publicación'}</DialogTitle>
         </DialogHeader>
-        <form onSubmit={handleSubmit} className="space-y-4">
-          {/* Cuenta */}
-          <div className="space-y-2">
-            <Label>Cuenta / Cliente</Label>
-            <Select value={form.cuenta_id} onValueChange={v => setForm(f => ({ ...f, cuenta_id: v }))}>
-              <SelectTrigger><SelectValue placeholder="Seleccionar cuenta..." /></SelectTrigger>
-              <SelectContent>
-                <SelectItem value="none">Sin cuenta</SelectItem>
-                {cuentas.map(c => <SelectItem key={c.id} value={c.id}>{c.nombre}</SelectItem>)}
-              </SelectContent>
-            </Select>
-          </div>
-          <div className="space-y-2">
-            <Label>Título</Label>
-            <Input value={form.titulo} onChange={e => setForm(f => ({ ...f, titulo: e.target.value }))} required />
-          </div>
-          <div className="space-y-2">
-            <Label>Descripción / Copy</Label>
-            <Textarea value={form.descripcion} onChange={e => setForm(f => ({ ...f, descripcion: e.target.value }))} rows={3} />
-          </div>
-          <div className="grid grid-cols-2 gap-4">
-            <div className="space-y-2">
-              <Label>Red Social</Label>
-              <Select value={form.red_social} onValueChange={v => setForm(f => ({ ...f, red_social: v }))}>
-                <SelectTrigger><SelectValue /></SelectTrigger>
-                <SelectContent>{REDES_SOCIALES.map(r => <SelectItem key={r} value={r}>{r}</SelectItem>)}</SelectContent>
-              </Select>
+        <form onSubmit={handleSubmit} className="space-y-5">
+          {/* PLANIFICACIÓN */}
+          <div>
+            <h3 className="text-sm font-semibold text-primary mb-3">📋 Planificación</h3>
+            <div className="space-y-3">
+              <div className="grid grid-cols-2 gap-3">
+                <div className="space-y-1.5">
+                  <Label>Cuenta / Cliente</Label>
+                  <Select value={form.cuenta_id} onValueChange={v => set('cuenta_id', v)}>
+                    <SelectTrigger><SelectValue placeholder="Seleccionar..." /></SelectTrigger>
+                    <SelectContent><SelectItem value="none">Sin cuenta</SelectItem>{cuentas.map(c => <SelectItem key={c.id} value={c.id}>{c.nombre}</SelectItem>)}</SelectContent>
+                  </Select>
+                </div>
+                <div className="space-y-1.5">
+                  <Label>Fecha</Label>
+                  <Input type="date" value={form.fecha} onChange={e => set('fecha', e.target.value)} required />
+                </div>
+              </div>
+              <div className="grid grid-cols-2 gap-3">
+                <div className="space-y-1.5">
+                  <Label>Título</Label>
+                  <Input value={form.titulo} onChange={e => set('titulo', e.target.value)} required />
+                </div>
+                <div className="space-y-1.5">
+                  <Label>Campaña</Label>
+                  <Input value={form.campana} onChange={e => set('campana', e.target.value)} placeholder="Nombre de la campaña..." />
+                </div>
+              </div>
+              <div className="grid grid-cols-3 gap-3">
+                <div className="space-y-1.5">
+                  <Label>Objetivo del post</Label>
+                  <Select value={form.objetivo_post} onValueChange={v => set('objetivo_post', v)}>
+                    <SelectTrigger><SelectValue /></SelectTrigger>
+                    <SelectContent>{OBJETIVOS_POST.map(o => <SelectItem key={o} value={o}>{o}</SelectItem>)}</SelectContent>
+                  </Select>
+                </div>
+                <div className="space-y-1.5">
+                  <Label>Pilar de contenido</Label>
+                  <Select value={form.pilar_contenido} onValueChange={v => set('pilar_contenido', v)}>
+                    <SelectTrigger><SelectValue /></SelectTrigger>
+                    <SelectContent>{PILARES_CONTENIDO.map(p => <SelectItem key={p} value={p}>{p}</SelectItem>)}</SelectContent>
+                  </Select>
+                </div>
+                <div className="space-y-1.5">
+                  <Label>Etapa del funnel</Label>
+                  <Select value={form.etapa_funnel} onValueChange={v => set('etapa_funnel', v)}>
+                    <SelectTrigger><SelectValue /></SelectTrigger>
+                    <SelectContent>{ETAPAS_FUNNEL.map(e => <SelectItem key={e} value={e}>{e}</SelectItem>)}</SelectContent>
+                  </Select>
+                </div>
+              </div>
+              <div className="grid grid-cols-3 gap-3">
+                <div className="space-y-1.5">
+                  <Label>Formato</Label>
+                  <Select value={form.tipo_contenido} onValueChange={v => set('tipo_contenido', v)}>
+                    <SelectTrigger><SelectValue /></SelectTrigger>
+                    <SelectContent>{TIPOS_CONTENIDO.map(t => <SelectItem key={t} value={t}>{t}</SelectItem>)}</SelectContent>
+                  </Select>
+                </div>
+                <div className="space-y-1.5">
+                  <Label>Canal</Label>
+                  <Select value={form.red_social} onValueChange={v => set('red_social', v)}>
+                    <SelectTrigger><SelectValue /></SelectTrigger>
+                    <SelectContent>{REDES_SOCIALES.map(r => <SelectItem key={r} value={r}>{r}</SelectItem>)}</SelectContent>
+                  </Select>
+                </div>
+                <div className="space-y-1.5">
+                  <Label>Tipo (pauta)</Label>
+                  <Select value={form.tipo_pauta} onValueChange={v => set('tipo_pauta', v)}>
+                    <SelectTrigger><SelectValue /></SelectTrigger>
+                    <SelectContent>{TIPOS_PAUTA.map(t => <SelectItem key={t} value={t}>{t}</SelectItem>)}</SelectContent>
+                  </Select>
+                </div>
+              </div>
+              <div className="grid grid-cols-2 gap-3">
+                <div className="space-y-1.5">
+                  <Label>Hook</Label>
+                  <Input value={form.hook} onChange={e => set('hook', e.target.value)} placeholder="Idea central de atracción..." />
+                </div>
+                <div className="space-y-1.5">
+                  <Label>CTA</Label>
+                  <Input value={form.cta_texto} onChange={e => set('cta_texto', e.target.value)} placeholder="Acción que debe realizar el usuario..." />
+                </div>
+              </div>
+              <div className="space-y-1.5">
+                <Label>Estado</Label>
+                <Select value={form.estado} onValueChange={v => set('estado', v)}>
+                  <SelectTrigger><SelectValue /></SelectTrigger>
+                  <SelectContent>{ESTADOS.map(e => <SelectItem key={e} value={e}>{e}</SelectItem>)}</SelectContent>
+                </Select>
+              </div>
             </div>
-            <div className="space-y-2">
-              <Label>Tipo de contenido</Label>
-              <Select value={form.tipo_contenido} onValueChange={v => setForm(f => ({ ...f, tipo_contenido: v }))}>
-                <SelectTrigger><SelectValue /></SelectTrigger>
-                <SelectContent>{TIPOS_CONTENIDO.map(t => <SelectItem key={t} value={t}>{t}</SelectItem>)}</SelectContent>
-              </Select>
+          </div>
+
+          <Separator />
+
+          {/* EJECUCIÓN */}
+          <div>
+            <h3 className="text-sm font-semibold text-primary mb-3">🎨 Ejecución</h3>
+            <div className="space-y-3">
+              <div className="space-y-1.5">
+                <Label>Descripción / Copy</Label>
+                <Textarea value={form.descripcion} onChange={e => set('descripcion', e.target.value)} rows={2} />
+              </div>
+              <div className="grid grid-cols-2 gap-3">
+                <div className="space-y-1.5">
+                  <Label>Copy Arte</Label>
+                  <Textarea value={form.copy_arte} onChange={e => set('copy_arte', e.target.value)} rows={2} />
+                </div>
+                <div className="space-y-1.5">
+                  <Label>Copy Caption</Label>
+                  <Textarea value={form.copy_caption} onChange={e => set('copy_caption', e.target.value)} rows={2} />
+                </div>
+              </div>
+              <div className="space-y-1.5">
+                <Label>Indicaciones para el Arte</Label>
+                <Textarea value={form.indicaciones_arte} onChange={e => set('indicaciones_arte', e.target.value)} rows={2} placeholder="Instrucciones para el diseñador..." />
+              </div>
+              <div className="grid grid-cols-2 gap-3">
+                <div className="space-y-1.5">
+                  <Label>Referencia visual</Label>
+                  <Input value={form.referencia_visual} onChange={e => set('referencia_visual', e.target.value)} placeholder="URL o descripción..." />
+                </div>
+                <div className="space-y-1.5">
+                  <Label>Link de referencia</Label>
+                  <Input value={form.link_referencia} onChange={e => set('link_referencia', e.target.value)} placeholder="https://..." />
+                </div>
+              </div>
+              <div className="grid grid-cols-3 gap-3">
+                <div className="space-y-1.5">
+                  <Label>Hashtags</Label>
+                  <Input value={form.hashtags} onChange={e => set('hashtags', e.target.value)} placeholder="#hashtag1 #hashtag2..." />
+                </div>
+                <div className="space-y-1.5">
+                  <Label>Duración</Label>
+                  <Input value={form.duracion} onChange={e => set('duracion', e.target.value)} placeholder="Ej: 30s, 1min..." />
+                </div>
+                <div className="space-y-1.5">
+                  <Label>Presupuesto</Label>
+                  <Input type="number" value={form.presupuesto} onChange={e => set('presupuesto', e.target.value)} placeholder="$0" />
+                </div>
+              </div>
+              <div className="space-y-1.5">
+                <Label>Segmentación</Label>
+                <Input value={form.segmentacion} onChange={e => set('segmentacion', e.target.value)} placeholder="Descripción de la segmentación..." />
+              </div>
             </div>
           </div>
-          <div className="grid grid-cols-2 gap-4">
-            <div className="space-y-2">
-              <Label>Estado</Label>
-              <Select value={form.estado} onValueChange={v => setForm(f => ({ ...f, estado: v }))}>
-                <SelectTrigger><SelectValue /></SelectTrigger>
-                <SelectContent>{ESTADOS.map(e => <SelectItem key={e} value={e}>{e}</SelectItem>)}</SelectContent>
-              </Select>
-            </div>
-            <div className="space-y-2">
-              <Label>Fecha</Label>
-              <Input type="date" value={form.fecha} onChange={e => setForm(f => ({ ...f, fecha: e.target.value }))} required />
-            </div>
-          </div>
-          <div className="space-y-2">
-            <Label>Copy del arte</Label>
-            <Textarea value={form.copy_arte} onChange={e => setForm(f => ({ ...f, copy_arte: e.target.value }))} rows={2} />
-          </div>
-          <div className="space-y-2">
-            <Label>Indicaciones para el Arte</Label>
-            <Textarea value={form.indicaciones_arte} onChange={e => setForm(f => ({ ...f, indicaciones_arte: e.target.value }))} rows={2} placeholder="Instrucciones para el diseñador..." />
-          </div>
-          <div className="space-y-2">
-            <Label>Link de referencia</Label>
-            <Input value={form.link_referencia} onChange={e => setForm(f => ({ ...f, link_referencia: e.target.value }))} placeholder="https://..." />
-          </div>
-          <div className="space-y-2">
+
+          <Separator />
+
+          {/* COLOR */}
+          <div className="space-y-1.5">
             <Label>Color</Label>
             <div className="flex gap-2 flex-wrap">
               {COLORES_PREDEFINIDOS.map(c => (
-                <button key={c} type="button" onClick={() => setForm(f => ({ ...f, color: c }))}
+                <button key={c} type="button" onClick={() => set('color', c)}
                   className={`h-8 w-8 rounded-full border-2 transition-transform ${form.color === c ? 'scale-125 border-foreground' : 'border-transparent'}`}
                   style={{ backgroundColor: c }} />
               ))}
-              <Input type="color" value={form.color} onChange={e => setForm(f => ({ ...f, color: e.target.value }))} className="h-8 w-8 p-0 border-0 cursor-pointer" />
+              <Input type="color" value={form.color} onChange={e => set('color', e.target.value)} className="h-8 w-8 p-0 border-0 cursor-pointer" />
             </div>
           </div>
+
           <Button type="submit" className="w-full" disabled={isPending}>
             {isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : (editData ? 'Guardar cambios' : 'Crear publicación')}
           </Button>

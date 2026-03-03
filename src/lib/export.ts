@@ -6,22 +6,57 @@ import type { Publicacion } from '@/hooks/usePublicaciones';
 const MESES = ['Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio', 'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre'];
 
 export function exportToExcel(publicaciones: Publicacion[], month: number, year: number) {
-  const data = publicaciones.map(p => ({
+  // Sheet 1: Planificación
+  const planData = publicaciones.map(p => ({
     Fecha: p.fecha,
-    'Red Social': p.red_social,
-    Tipo: p.tipo_contenido,
-    Título: p.titulo,
-    'Descripción': p.descripcion || '',
-    'Copy Arte': p.copy_arte || '',
-    'Indicaciones para el Arte': (p as any).indicaciones_arte || '',
-    'Link Referencia': p.link_referencia || '',
+    Campaña: (p as any).campana || '',
+    'Objetivo del Post': (p as any).objetivo_post || '',
+    'Pilar de Contenido': (p as any).pilar_contenido || '',
+    Formato: p.tipo_contenido,
+    Canal: p.red_social,
+    'Tipo (Pauta)': (p as any).tipo_pauta || '',
+    'Etapa Funnel': (p as any).etapa_funnel || '',
+    Hook: (p as any).hook || '',
+    CTA: (p as any).cta_texto || '',
     Estado: p.estado,
-    Color: p.color || '',
   }));
 
-  const ws = XLSX.utils.json_to_sheet(data);
+  // Sheet 2: Ejecución
+  const ejecData = publicaciones.map(p => ({
+    Título: p.titulo,
+    Fecha: p.fecha,
+    'Copy Arte': p.copy_arte || '',
+    'Copy Caption': (p as any).copy_caption || '',
+    'Descripción': p.descripcion || '',
+    'Indicaciones para el Arte': (p as any).indicaciones_arte || '',
+    'Referencia Visual': (p as any).referencia_visual || '',
+    Hashtags: (p as any).hashtags || '',
+    Duración: (p as any).duracion || '',
+    Presupuesto: (p as any).presupuesto || '',
+    Segmentación: (p as any).segmentacion || '',
+    'Link Referencia': p.link_referencia || '',
+  }));
+
+  // Sheet 3: Medición
+  const medData = publicaciones.map(p => ({
+    Título: p.titulo,
+    Fecha: p.fecha,
+    Alcance: (p as any).alcance || '',
+    Impresiones: (p as any).impresiones || '',
+    Engagement: (p as any).engagement || '',
+    'ER %': (p as any).er_porcentaje || '',
+    Guardados: (p as any).guardados || '',
+    Compartidos: (p as any).compartidos || '',
+    Clics: (p as any).clics || '',
+    'Seguidores Nuevos': (p as any).seguidores_nuevos || '',
+    Costo: (p as any).costo || '',
+    'Costo por Resultado': (p as any).costo_por_resultado || '',
+  }));
+
   const wb = XLSX.utils.book_new();
-  XLSX.utils.book_append_sheet(wb, ws, `${MESES[month]} ${year}`);
+  XLSX.utils.book_append_sheet(wb, XLSX.utils.json_to_sheet(planData), 'Planificación');
+  XLSX.utils.book_append_sheet(wb, XLSX.utils.json_to_sheet(ejecData), 'Ejecución');
+  XLSX.utils.book_append_sheet(wb, XLSX.utils.json_to_sheet(medData), 'Medición');
   XLSX.writeFile(wb, `grilla_${MESES[month]}_${year}.xlsx`);
 }
 
@@ -30,23 +65,81 @@ export function exportToPDF(publicaciones: Publicacion[], month: number, year: n
   doc.setFontSize(16);
   doc.text(`Grilla de Contenido — ${MESES[month]} ${year}`, 14, 15);
 
-  const rows = publicaciones.map(p => [
+  // Page 1: Planificación
+  doc.setFontSize(12);
+  doc.text('Planificación', 14, 24);
+
+  const planRows = publicaciones.map(p => [
     p.fecha,
-    p.red_social,
+    (p as any).campana || '',
+    (p as any).objetivo_post || '',
+    (p as any).pilar_contenido || '',
     p.tipo_contenido,
-    p.titulo,
-    (p.descripcion || '').substring(0, 50),
-    (p.copy_arte || '').substring(0, 50),
-    ((p as any).indicaciones_arte || '').substring(0, 50),
+    p.red_social,
+    (p as any).tipo_pauta || '',
+    (p as any).etapa_funnel || '',
+    ((p as any).hook || '').substring(0, 30),
+    ((p as any).cta_texto || '').substring(0, 30),
     p.estado,
   ]);
 
   autoTable(doc, {
-    head: [['Fecha', 'Red Social', 'Tipo', 'Título', 'Copy', 'Copy Arte', 'Indicaciones para el Arte', 'Estado']],
-    body: rows,
-    startY: 22,
-    styles: { fontSize: 8 },
+    head: [['Fecha', 'Campaña', 'Objetivo', 'Pilar', 'Formato', 'Canal', 'Tipo', 'Funnel', 'Hook', 'CTA', 'Estado']],
+    body: planRows,
+    startY: 28,
+    styles: { fontSize: 7 },
     headStyles: { fillColor: [99, 102, 241] },
+  });
+
+  // Page 2: Ejecución
+  doc.addPage();
+  doc.setFontSize(12);
+  doc.text('Ejecución', 14, 15);
+
+  const ejecRows = publicaciones.map(p => [
+    p.titulo.substring(0, 20),
+    p.fecha,
+    (p.copy_arte || '').substring(0, 30),
+    ((p as any).copy_caption || '').substring(0, 30),
+    ((p as any).indicaciones_arte || '').substring(0, 30),
+    ((p as any).hashtags || '').substring(0, 30),
+    (p as any).duracion || '',
+    (p as any).presupuesto || '',
+  ]);
+
+  autoTable(doc, {
+    head: [['Título', 'Fecha', 'Copy Arte', 'Copy Caption', 'Indicaciones Arte', 'Hashtags', 'Duración', 'Presupuesto']],
+    body: ejecRows,
+    startY: 20,
+    styles: { fontSize: 7 },
+    headStyles: { fillColor: [236, 72, 153] },
+  });
+
+  // Page 3: Medición
+  doc.addPage();
+  doc.setFontSize(12);
+  doc.text('Medición', 14, 15);
+
+  const medRows = publicaciones.map(p => [
+    p.titulo.substring(0, 20),
+    p.fecha,
+    (p as any).alcance || '',
+    (p as any).impresiones || '',
+    (p as any).engagement || '',
+    (p as any).er_porcentaje || '',
+    (p as any).guardados || '',
+    (p as any).compartidos || '',
+    (p as any).clics || '',
+    (p as any).costo || '',
+    (p as any).costo_por_resultado || '',
+  ]);
+
+  autoTable(doc, {
+    head: [['Título', 'Fecha', 'Alcance', 'Impresiones', 'Engagement', 'ER%', 'Guardados', 'Compartidos', 'Clics', 'Costo', 'CPR']],
+    body: medRows,
+    startY: 20,
+    styles: { fontSize: 7 },
+    headStyles: { fillColor: [16, 185, 129] },
   });
 
   doc.save(`grilla_${MESES[month]}_${year}.pdf`);
