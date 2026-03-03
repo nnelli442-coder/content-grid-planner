@@ -14,6 +14,27 @@ export type Database = {
   }
   public: {
     Tables: {
+      cuentas: {
+        Row: {
+          created_at: string
+          id: string
+          nombre: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          nombre: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          nombre?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       profiles: {
         Row: {
           created_at: string
@@ -46,6 +67,7 @@ export type Database = {
           color: string | null
           copy_arte: string | null
           created_at: string
+          cuenta_id: string | null
           descripcion: string | null
           estado: string
           fecha: string
@@ -61,6 +83,7 @@ export type Database = {
           color?: string | null
           copy_arte?: string | null
           created_at?: string
+          cuenta_id?: string | null
           descripcion?: string | null
           estado?: string
           fecha: string
@@ -76,6 +99,7 @@ export type Database = {
           color?: string | null
           copy_arte?: string | null
           created_at?: string
+          cuenta_id?: string | null
           descripcion?: string | null
           estado?: string
           fecha?: string
@@ -87,7 +111,15 @@ export type Database = {
           updated_at?: string
           user_id?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "publicaciones_cuenta_id_fkey"
+            columns: ["cuenta_id"]
+            isOneToOne: false
+            referencedRelation: "cuentas"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       user_roles: {
         Row: {
