@@ -34,12 +34,13 @@ export function exportToPDF(publicaciones: Publicacion[], month: number, year: n
     p.red_social,
     p.tipo_contenido,
     p.titulo,
-    (p.descripcion || '').substring(0, 60),
+    (p.descripcion || '').substring(0, 50),
+    (p.copy_arte || '').substring(0, 50),
     p.estado,
   ]);
 
   autoTable(doc, {
-    head: [['Fecha', 'Red Social', 'Tipo', 'Título', 'Descripción', 'Estado']],
+    head: [['Fecha', 'Red Social', 'Tipo', 'Título', 'Descripción', 'Copy Arte', 'Estado']],
     body: rows,
     startY: 22,
     styles: { fontSize: 8 },
