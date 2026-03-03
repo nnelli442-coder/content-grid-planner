@@ -13,6 +13,7 @@ export function exportToExcel(publicaciones: Publicacion[], month: number, year:
     Título: p.titulo,
     'Descripción': p.descripcion || '',
     'Copy Arte': p.copy_arte || '',
+    'Indicaciones para el Arte': (p as any).indicaciones_arte || '',
     'Link Referencia': p.link_referencia || '',
     Estado: p.estado,
     Color: p.color || '',
@@ -36,11 +37,12 @@ export function exportToPDF(publicaciones: Publicacion[], month: number, year: n
     p.titulo,
     (p.descripcion || '').substring(0, 50),
     (p.copy_arte || '').substring(0, 50),
+    ((p as any).indicaciones_arte || '').substring(0, 50),
     p.estado,
   ]);
 
   autoTable(doc, {
-    head: [['Fecha', 'Red Social', 'Tipo', 'Título', 'Copy', 'Indicaciones para el Arte', 'Estado']],
+    head: [['Fecha', 'Red Social', 'Tipo', 'Título', 'Copy', 'Copy Arte', 'Indicaciones para el Arte', 'Estado']],
     body: rows,
     startY: 22,
     styles: { fontSize: 8 },

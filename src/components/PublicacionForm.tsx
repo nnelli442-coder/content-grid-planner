@@ -26,7 +26,7 @@ export default function PublicacionForm({ open, onClose, editData, defaultDate }
   const { data: cuentas = [] } = useCuentas();
   const [form, setForm] = useState({
     titulo: '', descripcion: '', red_social: 'Instagram', tipo_contenido: 'Post',
-    estado: 'Borrador', copy_arte: '', link_referencia: '', color: '#3B82F6',
+    estado: 'Borrador', copy_arte: '', indicaciones_arte: '', link_referencia: '', color: '#3B82F6',
     fecha: defaultDate || new Date().toISOString().split('T')[0],
     cuenta_id: 'none' as string,
   });
@@ -37,6 +37,7 @@ export default function PublicacionForm({ open, onClose, editData, defaultDate }
         titulo: editData.titulo, descripcion: editData.descripcion || '',
         red_social: editData.red_social, tipo_contenido: editData.tipo_contenido,
         estado: editData.estado, copy_arte: editData.copy_arte || '',
+        indicaciones_arte: (editData as any).indicaciones_arte || '',
         link_referencia: editData.link_referencia || '', color: editData.color || '#3B82F6',
         fecha: editData.fecha,
         cuenta_id: (editData as any).cuenta_id || 'none',
@@ -124,6 +125,10 @@ export default function PublicacionForm({ open, onClose, editData, defaultDate }
           <div className="space-y-2">
             <Label>Copy del arte</Label>
             <Textarea value={form.copy_arte} onChange={e => setForm(f => ({ ...f, copy_arte: e.target.value }))} rows={2} />
+          </div>
+          <div className="space-y-2">
+            <Label>Indicaciones para el Arte</Label>
+            <Textarea value={form.indicaciones_arte} onChange={e => setForm(f => ({ ...f, indicaciones_arte: e.target.value }))} rows={2} placeholder="Instrucciones para el diseñador..." />
           </div>
           <div className="space-y-2">
             <Label>Link de referencia</Label>

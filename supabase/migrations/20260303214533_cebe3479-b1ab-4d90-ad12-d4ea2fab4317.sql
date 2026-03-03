@@ -1,0 +1,1 @@
+ALTER TABLE public.publicaciones ADD COLUMN indicaciones_arte text;

@@ -39,6 +39,7 @@ interface NewRow {
   titulo: string;
   descripcion: string;
   copy_arte: string;
+  indicaciones_arte: string;
   link_referencia: string;
   estado: string;
   color: string;
@@ -52,6 +53,7 @@ const emptyRow = (): NewRow => ({
   titulo: '',
   descripcion: '',
   copy_arte: '',
+  indicaciones_arte: '',
   link_referencia: '',
   estado: 'Borrador',
   color: '#3B82F6',
@@ -66,6 +68,7 @@ const SORTABLE_FIELDS: { key: string; label: string }[] = [
   { key: 'titulo', label: 'Título' },
   { key: 'descripcion', label: 'Descripción' },
   { key: 'copy_arte', label: 'Copy Arte' },
+  { key: 'indicaciones_arte', label: 'Indicaciones Arte' },
   { key: 'link_referencia', label: 'Link Ref.' },
   { key: 'estado', label: 'Estado' },
 ];
@@ -386,6 +389,7 @@ export default function TableView({ publicaciones, onEdit, filterDate, onClearFi
                 <TableCell><Input value={row.titulo} onChange={e => updateNewRow(idx, 'titulo', e.target.value)} placeholder="Título..." className="h-8 text-xs" /></TableCell>
                 <TableCell><Input value={row.descripcion} onChange={e => updateNewRow(idx, 'descripcion', e.target.value)} placeholder="Descripción..." className="h-8 text-xs" /></TableCell>
                 <TableCell><Input value={row.copy_arte} onChange={e => updateNewRow(idx, 'copy_arte', e.target.value)} placeholder="Copy arte..." className="h-8 text-xs" /></TableCell>
+                <TableCell><Input value={row.indicaciones_arte} onChange={e => updateNewRow(idx, 'indicaciones_arte', e.target.value)} placeholder="Indicaciones..." className="h-8 text-xs" /></TableCell>
                 <TableCell><Input value={row.link_referencia} onChange={e => updateNewRow(idx, 'link_referencia', e.target.value)} placeholder="https://..." className="h-8 text-xs" /></TableCell>
                 <TableCell>{renderNewRowSelect(idx, 'estado', ESTADOS)}</TableCell>
                 <TableCell>
@@ -398,7 +402,7 @@ export default function TableView({ publicaciones, onEdit, filterDate, onClearFi
             ))}
 
             {filtered.length === 0 && newRows.length === 0 ? (
-              <TableRow><TableCell colSpan={12} className="text-center py-8 text-muted-foreground">No hay publicaciones. Haz click en "Agregar fila" para comenzar.</TableCell></TableRow>
+              <TableRow><TableCell colSpan={13} className="text-center py-8 text-muted-foreground">No hay publicaciones. Haz click en "Agregar fila" para comenzar.</TableCell></TableRow>
             ) : filtered.map(p => (
               <TableRow key={p.id} className={`hover:bg-accent/20 ${selectedIds.has(p.id) ? 'bg-accent/30' : ''}`}>
                 <TableCell>
@@ -420,6 +424,7 @@ export default function TableView({ publicaciones, onEdit, filterDate, onClearFi
                 <TableCell>{renderEditableCell(p, 'titulo', p.titulo, 'font-medium')}</TableCell>
                 <TableCell>{renderEditableCell(p, 'descripcion', p.descripcion || '')}</TableCell>
                 <TableCell>{renderEditableCell(p, 'copy_arte', p.copy_arte || '')}</TableCell>
+                <TableCell>{renderEditableCell(p, 'indicaciones_arte', (p as any).indicaciones_arte || '')}</TableCell>
                 <TableCell>{renderEditableCell(p, 'link_referencia', p.link_referencia || '')}</TableCell>
                 <TableCell>{renderEditableCell(p, 'estado', p.estado)}</TableCell>
                 <TableCell>

@@ -72,6 +72,7 @@ export type Database = {
           estado: string
           fecha: string
           id: string
+          indicaciones_arte: string | null
           link_referencia: string | null
           red_social: string
           tipo_contenido: string
@@ -88,6 +89,7 @@ export type Database = {
           estado?: string
           fecha: string
           id?: string
+          indicaciones_arte?: string | null
           link_referencia?: string | null
           red_social: string
           tipo_contenido: string
@@ -104,6 +106,7 @@ export type Database = {
           estado?: string
           fecha?: string
           id?: string
+          indicaciones_arte?: string | null
           link_referencia?: string | null
           red_social?: string
           tipo_contenido?: string
