@@ -27,6 +27,8 @@ export default function Index() {
   const [formOpen, setFormOpen] = useState(false);
   const [editPub, setEditPub] = useState<Publicacion | null>(null);
   const [defaultDate, setDefaultDate] = useState<string>('');
+  const [activeTab, setActiveTab] = useState('calendar');
+  const [filterDate, setFilterDate] = useState<string | null>(null);
 
   if (loading) return <div className="flex min-h-screen items-center justify-center"><Loader2 className="h-8 w-8 animate-spin text-primary" /></div>;
   if (!user) return <Navigate to="/login" replace />;
@@ -41,9 +43,21 @@ export default function Index() {
     setFormOpen(true);
   };
 
+  const handleCalendarDateClick = (date: string) => {
+    setFilterDate(date);
+    setActiveTab('table');
+  };
+
+  const handleTableDateClick = (date: string) => {
+    // Parse date to set month/year and switch to calendar
+    const [y, m] = date.split('-').map(Number);
+    setYear(y);
+    setMonth(m - 1);
+    setActiveTab('calendar');
+  };
+
   return (
     <div className="min-h-screen bg-background">
-      {/* Header */}
       <header className="sticky top-0 z-30 border-b bg-card/80 backdrop-blur-sm">
         <div className="max-w-7xl mx-auto px-4 py-3 flex items-center justify-between">
           <div className="flex items-center gap-3">
@@ -60,7 +74,6 @@ export default function Index() {
       </header>
 
       <main className="max-w-7xl mx-auto px-4 py-6">
-        {/* Controls */}
         <div className="flex flex-wrap items-center justify-between gap-4 mb-6">
           <div className="flex items-center gap-2">
             <Select value={String(month)} onValueChange={v => setMonth(Number(v))}>
@@ -83,8 +96,7 @@ export default function Index() {
           </div>
         </div>
 
-        {/* Tabs */}
-        <Tabs defaultValue="calendar">
+        <Tabs value={activeTab} onValueChange={(v) => { setActiveTab(v); if (v !== 'table') setFilterDate(null); }}>
           <TabsList className="mb-4">
             <TabsTrigger value="calendar" className="gap-1.5"><CalendarDays className="h-4 w-4" /> Calendario</TabsTrigger>
             <TabsTrigger value="table" className="gap-1.5"><Table2 className="h-4 w-4" /> Tabla</TabsTrigger>
@@ -98,10 +110,10 @@ export default function Index() {
           ) : (
             <>
               <TabsContent value="calendar">
-                <CalendarView publicaciones={publicaciones} month={month} year={year} onDayClick={openNew} onEditPub={openEdit} />
+                <CalendarView publicaciones={publicaciones} month={month} year={year} onDayClick={handleCalendarDateClick} onEditPub={openEdit} onNewPub={openNew} />
               </TabsContent>
               <TabsContent value="table">
-                <TableView publicaciones={publicaciones} onEdit={openEdit} />
+                <TableView publicaciones={publicaciones} onEdit={openEdit} filterDate={filterDate} onClearFilterDate={() => setFilterDate(null)} onDateClick={handleTableDateClick} />
               </TabsContent>
               <TabsContent value="weekly">
                 <WeeklyView publicaciones={publicaciones} month={month} year={year} onDayClick={openNew} onEditPub={openEdit} />
