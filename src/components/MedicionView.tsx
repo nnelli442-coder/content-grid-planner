@@ -176,6 +176,7 @@ export default function MedicionView({ publicaciones }: Props) {
         onClose={() => { setDrawerPub(null); setDrawerField(null); }}
         publicacion={drawerPub}
         highlightField={drawerField}
+        visibleSections={['Medición']}
       />
     </div>
   );

@@ -10,6 +10,7 @@ interface Props {
   onClose: () => void;
   publicacion: Publicacion | null;
   highlightField?: string | null;
+  visibleSections?: ('Planificación' | 'Ejecución' | 'Medición')[];
 }
 
 const SECTIONS = [
@@ -61,7 +62,7 @@ const SECTIONS = [
   },
 ];
 
-export default function PublicacionDetailDrawer({ open, onClose, publicacion, highlightField }: Props) {
+export default function PublicacionDetailDrawer({ open, onClose, publicacion, highlightField, visibleSections }: Props) {
   if (!publicacion) return null;
 
   return (
@@ -81,7 +82,7 @@ export default function PublicacionDetailDrawer({ open, onClose, publicacion, hi
 
         <ScrollArea className="h-[calc(100vh-140px)]">
           <div className="px-6 py-4 space-y-6">
-            {SECTIONS.map(section => {
+            {SECTIONS.filter(s => !visibleSections || visibleSections.includes(s.title as any)).map(section => {
               const hasData = section.fields.some(f => {
                 const val = (publicacion as any)[f.key];
                 return val != null && val !== '';

@@ -138,6 +138,7 @@ export default function EjecucionView({ publicaciones }: Props) {
         onClose={() => { setDrawerPub(null); setDrawerField(null); }}
         publicacion={drawerPub}
         highlightField={drawerField}
+        visibleSections={['Ejecución']}
       />
     </div>
   );
