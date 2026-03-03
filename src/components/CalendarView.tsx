@@ -1,7 +1,7 @@
 import { useMemo, useState, useCallback } from 'react';
 import type { Publicacion } from '@/hooks/usePublicaciones';
 import { useMovePublicacion, useDuplicatePublicacion } from '@/hooks/usePublicaciones';
-import { Copy } from 'lucide-react';
+import { Copy, Plus } from 'lucide-react';
 import { toast } from 'sonner';
 
 interface Props {
@@ -10,11 +10,12 @@ interface Props {
   year: number;
   onDayClick: (date: string) => void;
   onEditPub: (pub: Publicacion) => void;
+  onNewPub?: (date: string) => void;
 }
 
 const DIAS = ['Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb', 'Dom'];
 
-export default function CalendarView({ publicaciones, month, year, onDayClick, onEditPub }: Props) {
+export default function CalendarView({ publicaciones, month, year, onDayClick, onEditPub, onNewPub }: Props) {
   const moveMut = useMovePublicacion();
   const dupMut = useDuplicatePublicacion();
   const [draggedPub, setDraggedPub] = useState<Publicacion | null>(null);
@@ -49,32 +50,20 @@ export default function CalendarView({ publicaciones, month, year, onDayClick, o
     setDragOverDate(dateStr);
   }, []);
 
-  const handleDragLeave = useCallback(() => {
-    setDragOverDate(null);
-  }, []);
+  const handleDragLeave = useCallback(() => { setDragOverDate(null); }, []);
 
   const handleDrop = useCallback(async (e: React.DragEvent, dateStr: string) => {
     e.preventDefault();
     setDragOverDate(null);
     if (draggedPub && draggedPub.fecha !== dateStr) {
-      try {
-        await moveMut.mutateAsync({ id: draggedPub.id, fecha: dateStr });
-        toast.success('Publicación movida');
-      } catch {
-        toast.error('Error al mover');
-      }
+      try { await moveMut.mutateAsync({ id: draggedPub.id, fecha: dateStr }); toast.success('Publicación movida'); } catch { toast.error('Error al mover'); }
     }
     setDraggedPub(null);
   }, [draggedPub, moveMut]);
 
   const handleDuplicate = async (e: React.MouseEvent, pub: Publicacion) => {
     e.stopPropagation();
-    try {
-      await dupMut.mutateAsync(pub);
-      toast.success('Publicación duplicada');
-    } catch {
-      toast.error('Error al duplicar');
-    }
+    try { await dupMut.mutateAsync(pub); toast.success('Duplicada'); } catch { toast.error('Error'); }
   };
 
   const cells = [];
@@ -94,13 +83,17 @@ export default function CalendarView({ publicaciones, month, year, onDayClick, o
           isDragOver ? 'border-primary bg-accent/50 scale-[1.02]' :
           isToday ? 'border-primary bg-accent/30' : 'border-border bg-card'
         } hover:border-primary/50`}>
-        <div className={`text-sm font-semibold mb-1 ${isToday ? 'text-primary' : 'text-foreground'}`}>{d}</div>
+        <div className="flex items-center justify-between mb-1">
+          <span className={`text-sm font-semibold ${isToday ? 'text-primary' : 'text-foreground'}`}>{d}</span>
+          {onNewPub && (
+            <button onClick={e => { e.stopPropagation(); onNewPub(dateStr); }} className="opacity-0 group-hover:opacity-100 hover:opacity-100 text-muted-foreground hover:text-primary transition-opacity" title="Nueva publicación">
+              <Plus className="h-3.5 w-3.5" />
+            </button>
+          )}
+        </div>
         <div className="space-y-1">
           {dayPubs.slice(0, 3).map(p => (
-            <div key={p.id}
-              draggable
-              onDragStart={e => handleDragStart(e, p)}
-              onClick={e => { e.stopPropagation(); onEditPub(p); }}
+            <div key={p.id} draggable onDragStart={e => handleDragStart(e, p)} onClick={e => { e.stopPropagation(); onEditPub(p); }}
               className="group text-xs px-1.5 py-0.5 rounded truncate text-white font-medium cursor-grab active:cursor-grabbing hover:opacity-90 flex items-center justify-between"
               style={{ backgroundColor: p.color || '#3B82F6' }}>
               <span className="truncate">{p.titulo}</span>
@@ -117,6 +110,7 @@ export default function CalendarView({ publicaciones, month, year, onDayClick, o
 
   return (
     <div>
+      <p className="text-xs text-muted-foreground mb-2">Click en un día para ver sus publicaciones en la tabla. Arrastra publicaciones para mover de fecha.</p>
       <div className="grid grid-cols-7 gap-1 mb-1">
         {DIAS.map(d => <div key={d} className="text-center text-xs font-semibold text-muted-foreground py-2">{d}</div>)}
       </div>
