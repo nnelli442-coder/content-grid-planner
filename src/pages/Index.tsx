@@ -5,7 +5,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Badge } from '@/components/ui/badge';
-import { CalendarDays, Table2, CalendarRange, BarChart3, Plus, LogOut, Shield, Loader2, FileSpreadsheet, FileText, Moon, Sun, Target, Palette, TrendingUp } from 'lucide-react';
+import { CalendarDays, Table2, CalendarRange, BarChart3, Plus, LogOut, Shield, Loader2, FileSpreadsheet, FileText, Moon, Sun, Target, Palette, TrendingUp, Grid3X3 } from 'lucide-react';
 import { exportToExcel, exportToPDF } from '@/lib/export';
 import { usePublicaciones } from '@/hooks/usePublicaciones';
 import { useCuentas } from '@/hooks/useCuentas';
@@ -18,6 +18,7 @@ import PublicacionForm from '@/components/PublicacionForm';
 import EstrategiaView from '@/components/EstrategiaView';
 import EjecucionView from '@/components/EjecucionView';
 import MedicionView from '@/components/MedicionView';
+import ParrillaView from '@/components/ParrillaView';
 import type { Publicacion } from '@/hooks/usePublicaciones';
 
 const MESES = ['Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio', 'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre'];
@@ -175,6 +176,9 @@ export default function Index() {
             <TabsTrigger value="medicion" className="gap-1.5 rounded-lg data-[state=active]:shadow-sm">
               <TrendingUp className="h-4 w-4" /> Medición
             </TabsTrigger>
+            <TabsTrigger value="excel" className="gap-1.5 rounded-lg data-[state=active]:shadow-sm">
+              <Grid3X3 className="h-4 w-4" /> Excel
+            </TabsTrigger>
             <TabsTrigger value="metricas" className="gap-1.5 rounded-lg data-[state=active]:shadow-sm">
               <BarChart3 className="h-4 w-4" /> Gráficos
             </TabsTrigger>
@@ -211,6 +215,9 @@ export default function Index() {
               </TabsContent>
               <TabsContent value="medicion">
                 <MedicionView publicaciones={publicaciones} />
+              </TabsContent>
+              <TabsContent value="excel">
+                <ParrillaView publicaciones={publicaciones} />
               </TabsContent>
               <TabsContent value="metricas">
                 <MetricsView publicaciones={publicaciones} />
