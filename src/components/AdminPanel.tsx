@@ -171,6 +171,7 @@ export default function AdminPanel() {
                 <SelectTrigger><SelectValue /></SelectTrigger>
                 <SelectContent>
                   <SelectItem value="user">Usuario</SelectItem>
+                  <SelectItem value="supervisor">Supervisor (solo lectura)</SelectItem>
                   <SelectItem value="admin">Admin</SelectItem>
                 </SelectContent>
               </Select>
@@ -200,7 +201,17 @@ export default function AdminPanel() {
                   <TableRow key={u.user_id}>
                     <TableCell>{u.full_name || '—'}</TableCell>
                     <TableCell>{u.email}</TableCell>
-                    <TableCell><Badge variant={u.role === 'admin' ? 'default' : 'secondary'}>{u.role}</Badge></TableCell>
+                    <TableCell>
+                      <span className={`inline-flex items-center rounded-full border px-2 py-0.5 text-xs font-medium ${
+                        u.role === 'admin'
+                          ? 'bg-primary/10 text-primary border-primary/30'
+                          : u.role === 'supervisor'
+                            ? 'bg-amber-500/10 text-amber-700 dark:text-amber-400 border-amber-500/30'
+                            : 'bg-muted text-muted-foreground border-muted-foreground/20'
+                      }`}>
+                        {u.role === 'admin' ? 'Admin' : u.role === 'supervisor' ? 'Supervisor' : 'Usuario'}
+                      </span>
+                    </TableCell>
                   </TableRow>
                 ))}
               </TableBody>

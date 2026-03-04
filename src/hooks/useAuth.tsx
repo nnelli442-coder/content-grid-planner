@@ -6,6 +6,7 @@ interface AuthContextType {
   user: User | null;
   session: Session | null;
   isAdmin: boolean;
+  isSupervisor: boolean;
   loading: boolean;
   signIn: (email: string, password: string) => Promise<{ error: any }>;
   signOut: () => Promise<void>;
@@ -17,6 +18,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
   const [session, setSession] = useState<Session | null>(null);
   const [isAdmin, setIsAdmin] = useState(false);
+  const [isSupervisor, setIsSupervisor] = useState(false);
   const [loading, setLoading] = useState(true);
 
   const checkRole = async (userId: string) => {
@@ -25,25 +27,25 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         .from('user_roles')
         .select('role')
         .eq('user_id', userId)
-        .eq('role', 'admin')
         .maybeSingle();
-      setIsAdmin(!!data);
+      const role = data?.role || 'user';
+      setIsAdmin(role === 'admin');
+      setIsSupervisor(role === 'supervisor');
     } catch {
       setIsAdmin(false);
+      setIsSupervisor(false);
     }
   };
 
   useEffect(() => {
     let mounted = true;
 
-    // Set up auth state listener FIRST
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       async (_event, session) => {
         if (!mounted) return;
         setSession(session);
         setUser(session?.user ?? null);
         if (session?.user) {
-          // Use setTimeout to avoid Supabase deadlock
           setTimeout(async () => {
             if (mounted) {
               await checkRole(session.user.id);
@@ -52,12 +54,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           }, 0);
         } else {
           setIsAdmin(false);
+          setIsSupervisor(false);
           setLoading(false);
         }
       }
     );
 
-    // Then get initial session
     supabase.auth.getSession().then(({ data: { session } }) => {
       if (!mounted) return;
       setSession(session);
@@ -71,7 +73,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       }
     });
 
-    // Safety timeout - never stay loading forever
     const timeout = setTimeout(() => {
       if (mounted) setLoading(false);
     }, 5000);
@@ -93,7 +94,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   };
 
   return (
-    <AuthContext.Provider value={{ user, session, isAdmin, loading, signIn, signOut }}>
+    <AuthContext.Provider value={{ user, session, isAdmin, isSupervisor, loading, signIn, signOut }}>
       {children}
     </AuthContext.Provider>
   );

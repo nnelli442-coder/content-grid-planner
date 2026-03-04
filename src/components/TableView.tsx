@@ -10,6 +10,7 @@ import { REDES_SOCIALES, TIPOS_CONTENIDO, ESTADOS, OBJETIVOS_POST, PILARES_CONTE
 import type { Publicacion } from '@/hooks/usePublicaciones';
 import { useDeletePublicacion, useDuplicatePublicacion, useUpdatePublicacion, useCreatePublicacion } from '@/hooks/usePublicaciones';
 import { useAuth } from '@/hooks/useAuth';
+import { cn } from '@/lib/utils';
 import { useCuentas } from '@/hooks/useCuentas';
 import { toast } from 'sonner';
 import PublicacionDetailDrawer from '@/components/PublicacionDetailDrawer';
@@ -22,12 +23,12 @@ interface Props {
   onDateClick?: (date: string) => void;
 }
 
-const estadoVariant = (e: string) => {
-  if (e === 'Publicado') return 'default';
-  if (e === 'Programado') return 'secondary';
-  if (e === 'En revisión') return 'outline';
-  if (e === 'En diseño') return 'outline';
-  return 'outline';
+const estadoClasses = (e: string): string => {
+  if (e === 'Publicado')    return 'bg-emerald-500/15 text-emerald-700 dark:text-emerald-400 border-emerald-500/30';
+  if (e === 'Programado')   return 'bg-blue-500/15 text-blue-700 dark:text-blue-400 border-blue-500/30';
+  if (e === 'En revisión')  return 'bg-amber-500/15 text-amber-700 dark:text-amber-400 border-amber-500/30';
+  if (e === 'En diseño')    return 'bg-violet-500/15 text-violet-700 dark:text-violet-400 border-violet-500/30';
+  return 'bg-muted text-muted-foreground border-muted-foreground/20'; // En planeación
 };
 
 type SortDir = 'asc' | 'desc' | null;
@@ -95,7 +96,7 @@ const SELECT_FIELDS: Record<string, readonly string[]> = {
 };
 
 export default function TableView({ publicaciones, onEdit, filterDate, onClearFilterDate, onDateClick }: Props) {
-  const { user, isAdmin } = useAuth();
+  const { user, isAdmin, isSupervisor } = useAuth();
   const { data: cuentas = [] } = useCuentas();
   const cuentasMap = Object.fromEntries(cuentas.map(c => [c.id, c.nombre]));
   const [filterRed, setFilterRed] = useState('all');
@@ -245,8 +246,9 @@ export default function TableView({ publicaciones, onEdit, filterDate, onClearFi
         onClick={() => openDrawer(pub, field)}
         onDoubleClick={() => { if (isAdmin) { setEditingCell({ id: pub.id, field }); setEditValue(value || ''); } }}
         title={isAdmin ? "Click para ver, doble click para editar" : "Click para ver detalles"}>
-        {field === 'estado' ? <Badge variant={estadoVariant(value)} className="cursor-pointer">{value}</Badge> :
-          <span className="text-sm truncate">{value || <span className="text-muted-foreground italic">vacío</span>}</span>}
+        {field === 'estado'
+          ? <span className={cn('inline-flex items-center rounded-full border px-2 py-0.5 text-xs font-medium', estadoClasses(value))}>{value}</span>
+          : <span className="text-sm truncate">{value || <span className="text-muted-foreground italic">vacío</span>}</span>}
       </div>
     );
   };
@@ -278,10 +280,12 @@ export default function TableView({ publicaciones, onEdit, filterDate, onClearFi
             <CalendarDays className="h-3 w-3" /> {filterDate} <X className="h-3 w-3" />
           </Badge>
         )}
-        <Button onClick={addNewRow} size="sm" variant="outline" className="gap-1.5 ml-auto"><Plus className="h-4 w-4" /> Agregar fila</Button>
+        {!isSupervisor && (
+          <Button onClick={addNewRow} size="sm" variant="outline" className="gap-1.5 ml-auto"><Plus className="h-4 w-4" /> Agregar fila</Button>
+        )}
       </div>
 
-      {selectedIds.size > 0 && (
+      {selectedIds.size > 0 && !isSupervisor && (
         <div className="flex items-center gap-3 p-3 rounded-lg bg-accent/50 border border-primary/20">
           <span className="text-sm font-medium">{selectedIds.size} seleccionadas</span>
           <Select onValueChange={bulkChangeStatus}>
@@ -360,10 +364,12 @@ export default function TableView({ publicaciones, onEdit, filterDate, onClearFi
                 <TableCell>{renderEditableCell(p, 'cta_texto', (p as any).cta_texto || '')}</TableCell>
                 <TableCell>{renderEditableCell(p, 'estado', p.estado)}</TableCell>
                 <TableCell>
-                  <div className="flex gap-1">
-                    <Button variant="ghost" size="icon" className="h-8 w-8" onClick={async () => { try { await dupMut.mutateAsync(p); toast.success('Duplicada'); } catch { toast.error('Error'); } }}><Copy className="h-4 w-4" /></Button>
-                    <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => handleDelete(p.id)}><Trash2 className="h-4 w-4 text-destructive" /></Button>
-                  </div>
+                  {!isSupervisor && (
+                    <div className="flex gap-1">
+                      <Button variant="ghost" size="icon" className="h-8 w-8" onClick={async () => { try { await dupMut.mutateAsync(p); toast.success('Duplicada'); } catch { toast.error('Error'); } }}><Copy className="h-4 w-4" /></Button>
+                      <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => handleDelete(p.id)}><Trash2 className="h-4 w-4 text-destructive" /></Button>
+                    </div>
+                  )}
                 </TableCell>
               </TableRow>
             ))}
