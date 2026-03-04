@@ -113,7 +113,6 @@ export type Database = {
       publicaciones: {
         Row: {
           alcance: number | null
-          arte_final_url: string | null
           campana: string | null
           clics: number | null
           color: string | null
@@ -154,7 +153,6 @@ export type Database = {
         }
         Insert: {
           alcance?: number | null
-          arte_final_url?: string | null
           campana?: string | null
           clics?: number | null
           color?: string | null
@@ -195,7 +193,6 @@ export type Database = {
         }
         Update: {
           alcance?: number | null
-          arte_final_url?: string | null
           campana?: string | null
           clics?: number | null
           color?: string | null
