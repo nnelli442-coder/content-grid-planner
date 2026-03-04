@@ -5,7 +5,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Badge } from '@/components/ui/badge';
-import { CalendarDays, Table2, CalendarRange, BarChart3, Plus, LogOut, Shield, Loader2, FileSpreadsheet, FileText, Moon, Sun, Target, Palette, TrendingUp, Grid3X3 } from 'lucide-react';
+import { CalendarDays, Table2, CalendarRange, BarChart3, Plus, LogOut, Shield, Loader2, FileSpreadsheet, FileText, Moon, Sun, Target, Palette, TrendingUp, Grid3X3, Activity } from 'lucide-react';
 import { exportToExcel, exportToPDF } from '@/lib/export';
 import { usePublicaciones } from '@/hooks/usePublicaciones';
 import { useCuentas } from '@/hooks/useCuentas';
@@ -19,6 +19,7 @@ import EstrategiaView from '@/components/EstrategiaView';
 import EjecucionView from '@/components/EjecucionView';
 import MedicionView from '@/components/MedicionView';
 import ParrillaView from '@/components/ParrillaView';
+import MetaReportView from '@/components/MetaReportView';
 import type { Publicacion } from '@/hooks/usePublicaciones';
 
 const MESES = ['Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio', 'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre'];
@@ -29,6 +30,9 @@ export default function Index() {
   const [month, setMonth] = useState(now.getMonth());
   const [year, setYear] = useState(now.getFullYear());
   const { data: publicaciones = [], isLoading } = usePublicaciones(month, year);
+  const prevMonth = month === 0 ? 11 : month - 1;
+  const prevYear = month === 0 ? year - 1 : year;
+  const { data: prevPublicaciones = [] } = usePublicaciones(prevMonth, prevYear);
   const { data: cuentas = [] } = useCuentas();
 
   const [formOpen, setFormOpen] = useState(false);
@@ -182,6 +186,9 @@ export default function Index() {
             <TabsTrigger value="metricas" className="gap-1.5 rounded-lg data-[state=active]:shadow-sm">
               <BarChart3 className="h-4 w-4" /> Gráficos
             </TabsTrigger>
+            <TabsTrigger value="meta-report" className="gap-1.5 rounded-lg data-[state=active]:shadow-sm">
+              <Activity className="h-4 w-4" /> Meta
+            </TabsTrigger>
             {isAdmin && (
               <TabsTrigger value="admin" className="gap-1.5 rounded-lg data-[state=active]:shadow-sm">
                 <Shield className="h-4 w-4" /> Admin
@@ -221,6 +228,9 @@ export default function Index() {
               </TabsContent>
               <TabsContent value="metricas">
                 <MetricsView publicaciones={publicaciones} />
+              </TabsContent>
+              <TabsContent value="meta-report">
+                <MetaReportView publicaciones={publicaciones} month={month} year={year} prevPublicaciones={prevPublicaciones} />
               </TabsContent>
               {isAdmin && <TabsContent value="admin"><AdminPanel /></TabsContent>}
             </>
