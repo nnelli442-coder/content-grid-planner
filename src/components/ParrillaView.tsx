@@ -405,7 +405,7 @@ export default function ParrillaView({ publicaciones }: Props) {
               <th className="border border-[#BDC3C7] bg-[#1F3864] dark:bg-indigo-950 w-8 text-[10px] text-white/60 py-2" />
               <HeaderCell className="w-[160px] min-w-[160px]">FASE / CAMPAÑA</HeaderCell>
               {COLS.map(c => <HeaderCell key={c.key} className={c.w}>{c.label}</HeaderCell>)}
-              {!isSupervisor && <HeaderCell className="w-[70px] min-w-[70px]" />}
+              {!isSupervisor && <HeaderCell className="w-[70px] min-w-[70px]">{' '}</HeaderCell>}
             </tr>
           </thead>
 

@@ -28,7 +28,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         .select('role')
         .eq('user_id', userId)
         .maybeSingle();
-      const role = data?.role || 'user';
+      const role = (data?.role as string) || 'user';
       setIsAdmin(role === 'admin');
       setIsSupervisor(role === 'supervisor');
     } catch {
