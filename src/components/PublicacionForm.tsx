@@ -11,7 +11,8 @@ import { useCreatePublicacion, useUpdatePublicacion, REDES_SOCIALES, TIPOS_CONTE
 import type { Publicacion } from '@/hooks/usePublicaciones';
 import { useCuentas } from '@/hooks/useCuentas';
 import { toast } from 'sonner';
-import { Loader2 } from 'lucide-react';
+import { Loader2, CheckCircle2 } from 'lucide-react';
+import ImageUpload from '@/components/ImageUpload';
 
 interface Props {
   open: boolean;
@@ -25,6 +26,7 @@ export default function PublicacionForm({ open, onClose, editData, defaultDate }
   const create = useCreatePublicacion();
   const update = useUpdatePublicacion();
   const { data: cuentas = [] } = useCuentas();
+
   const [form, setForm] = useState({
     titulo: '', descripcion: '', red_social: 'Instagram', tipo_contenido: 'Post',
     estado: 'En planeación', copy_arte: '', indicaciones_arte: '', link_referencia: '', color: '#3B82F6',
@@ -34,6 +36,7 @@ export default function PublicacionForm({ open, onClose, editData, defaultDate }
     etapa_funnel: 'Descubrimiento', hook: '', cta_texto: '', tipo_pauta: 'Orgánico',
     copy_caption: '', referencia_visual: '', hashtags: '', duracion: '',
     presupuesto: '', segmentacion: '',
+    arte_final_url: '',
   });
 
   useEffect(() => {
@@ -55,13 +58,14 @@ export default function PublicacionForm({ open, onClose, editData, defaultDate }
         hashtags: p.hashtags || '', duracion: p.duracion || '',
         presupuesto: p.presupuesto != null ? String(p.presupuesto) : '',
         segmentacion: p.segmentacion || '',
+        arte_final_url: p.arte_final_url || '',
       });
     } else {
       setForm(f => ({
         ...f, titulo: '', descripcion: '', copy_arte: '', indicaciones_arte: '',
         link_referencia: '', campana: '', hook: '', cta_texto: '',
         copy_caption: '', referencia_visual: '', hashtags: '', duracion: '',
-        presupuesto: '', segmentacion: '',
+        presupuesto: '', segmentacion: '', arte_final_url: '',
         fecha: defaultDate || new Date().toISOString().split('T')[0], cuenta_id: 'none',
       }));
     }
@@ -75,6 +79,8 @@ export default function PublicacionForm({ open, onClose, editData, defaultDate }
         ...form,
         cuenta_id: form.cuenta_id === 'none' ? null : form.cuenta_id,
         presupuesto: form.presupuesto ? Number(form.presupuesto) : null,
+        referencia_visual: form.referencia_visual || null,
+        arte_final_url: form.arte_final_url || null,
       };
       if (editData) {
         await update.mutateAsync({ id: editData.id, ...payload });
@@ -96,8 +102,10 @@ export default function PublicacionForm({ open, onClose, editData, defaultDate }
         <DialogHeader>
           <DialogTitle>{editData ? 'Editar publicación' : 'Nueva publicación'}</DialogTitle>
         </DialogHeader>
+
         <form onSubmit={handleSubmit} className="space-y-5">
-          {/* PLANIFICACIÓN */}
+
+          {/* ── PLANIFICACIÓN ── */}
           <div>
             <h3 className="text-sm font-semibold text-primary mb-3">📋 Planificación</h3>
             <div className="space-y-3">
@@ -105,8 +113,11 @@ export default function PublicacionForm({ open, onClose, editData, defaultDate }
                 <div className="space-y-1.5">
                   <Label>Cuenta / Cliente</Label>
                   <Select value={form.cuenta_id} onValueChange={v => set('cuenta_id', v)}>
-                    <SelectTrigger><SelectValue placeholder="Seleccionar..." /></SelectTrigger>
-                    <SelectContent><SelectItem value="none">Sin cuenta</SelectItem>{cuentas.map(c => <SelectItem key={c.id} value={c.id}>{c.nombre}</SelectItem>)}</SelectContent>
+                    <SelectTrigger><SelectValue placeholder="Seleccionar…" /></SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="none">Sin cuenta</SelectItem>
+                      {cuentas.map(c => <SelectItem key={c.id} value={c.id}>{c.nombre}</SelectItem>)}
+                    </SelectContent>
                   </Select>
                 </div>
                 <div className="space-y-1.5">
@@ -114,6 +125,7 @@ export default function PublicacionForm({ open, onClose, editData, defaultDate }
                   <Input type="date" value={form.fecha} onChange={e => set('fecha', e.target.value)} required />
                 </div>
               </div>
+
               <div className="grid grid-cols-2 gap-3">
                 <div className="space-y-1.5">
                   <Label>Título</Label>
@@ -121,9 +133,10 @@ export default function PublicacionForm({ open, onClose, editData, defaultDate }
                 </div>
                 <div className="space-y-1.5">
                   <Label>Campaña</Label>
-                  <Input value={form.campana} onChange={e => set('campana', e.target.value)} placeholder="Nombre de la campaña..." />
+                  <Input value={form.campana} onChange={e => set('campana', e.target.value)} placeholder="Nombre de la campaña…" />
                 </div>
               </div>
+
               <div className="grid grid-cols-3 gap-3">
                 <div className="space-y-1.5">
                   <Label>Objetivo del post</Label>
@@ -147,6 +160,7 @@ export default function PublicacionForm({ open, onClose, editData, defaultDate }
                   </Select>
                 </div>
               </div>
+
               <div className="grid grid-cols-3 gap-3">
                 <div className="space-y-1.5">
                   <Label>Formato</Label>
@@ -170,16 +184,18 @@ export default function PublicacionForm({ open, onClose, editData, defaultDate }
                   </Select>
                 </div>
               </div>
+
               <div className="grid grid-cols-2 gap-3">
                 <div className="space-y-1.5">
                   <Label>Hook</Label>
-                  <Input value={form.hook} onChange={e => set('hook', e.target.value)} placeholder="Idea central de atracción..." />
+                  <Input value={form.hook} onChange={e => set('hook', e.target.value)} placeholder="Idea central de atracción…" />
                 </div>
                 <div className="space-y-1.5">
                   <Label>CTA</Label>
-                  <Input value={form.cta_texto} onChange={e => set('cta_texto', e.target.value)} placeholder="Acción que debe realizar el usuario..." />
+                  <Input value={form.cta_texto} onChange={e => set('cta_texto', e.target.value)} placeholder="Acción que debe realizar el usuario…" />
                 </div>
               </div>
+
               <div className="space-y-1.5">
                 <Label>Estado</Label>
                 <Select value={form.estado} onValueChange={v => set('estado', v)}>
@@ -192,7 +208,7 @@ export default function PublicacionForm({ open, onClose, editData, defaultDate }
 
           <Separator />
 
-          {/* EJECUCIÓN */}
+          {/* ── EJECUCIÓN ── */}
           <div>
             <h3 className="text-sm font-semibold text-primary mb-3">🎨 Ejecución</h3>
             <div className="space-y-3">
@@ -212,44 +228,72 @@ export default function PublicacionForm({ open, onClose, editData, defaultDate }
               </div>
               <div className="space-y-1.5">
                 <Label>Indicaciones para el Arte</Label>
-                <Textarea value={form.indicaciones_arte} onChange={e => set('indicaciones_arte', e.target.value)} rows={2} placeholder="Instrucciones para el diseñador..." />
+                <Textarea value={form.indicaciones_arte} onChange={e => set('indicaciones_arte', e.target.value)} rows={2} placeholder="Instrucciones para el diseñador…" />
               </div>
-              <div className="grid grid-cols-2 gap-3">
-                <div className="space-y-1.5">
-                  <Label>Referencia visual</Label>
-                  <Input value={form.referencia_visual} onChange={e => set('referencia_visual', e.target.value)} placeholder="URL o descripción..." />
-                </div>
-                <div className="space-y-1.5">
-                  <Label>Link de referencia</Label>
-                  <Input value={form.link_referencia} onChange={e => set('link_referencia', e.target.value)} placeholder="https://..." />
-                </div>
+
+              {/* Imagen de referencia visual — UPLOAD */}
+              <div className="space-y-1.5">
+                <Label>Imagen de referencia visual</Label>
+                <p className="text-xs text-muted-foreground">Sube una imagen de referencia para el diseñador</p>
+                <ImageUpload
+                  value={form.referencia_visual}
+                  onChange={url => set('referencia_visual', url || '')}
+                  label="referencia visual"
+                />
               </div>
+
+              <div className="space-y-1.5">
+                <Label>Link de referencia</Label>
+                <Input value={form.link_referencia} onChange={e => set('link_referencia', e.target.value)} placeholder="https://…" />
+              </div>
+
               <div className="grid grid-cols-3 gap-3">
                 <div className="space-y-1.5">
                   <Label>Hashtags</Label>
-                  <Input value={form.hashtags} onChange={e => set('hashtags', e.target.value)} placeholder="#hashtag1 #hashtag2..." />
+                  <Input value={form.hashtags} onChange={e => set('hashtags', e.target.value)} placeholder="#hashtag1 #hashtag2…" />
                 </div>
                 <div className="space-y-1.5">
                   <Label>Duración</Label>
-                  <Input value={form.duracion} onChange={e => set('duracion', e.target.value)} placeholder="Ej: 30s, 1min..." />
+                  <Input value={form.duracion} onChange={e => set('duracion', e.target.value)} placeholder="30s, 1min…" />
                 </div>
                 <div className="space-y-1.5">
                   <Label>Presupuesto</Label>
                   <Input type="number" value={form.presupuesto} onChange={e => set('presupuesto', e.target.value)} placeholder="$0" />
                 </div>
               </div>
+
               <div className="space-y-1.5">
                 <Label>Segmentación</Label>
-                <Input value={form.segmentacion} onChange={e => set('segmentacion', e.target.value)} placeholder="Descripción de la segmentación..." />
+                <Input value={form.segmentacion} onChange={e => set('segmentacion', e.target.value)} placeholder="Descripción de la segmentación…" />
               </div>
             </div>
           </div>
 
           <Separator />
 
-          {/* COLOR */}
+          {/* ── ARTE FINAL ── */}
+          <div className="rounded-xl border-2 border-dashed border-emerald-500/40 bg-emerald-500/5 p-4 space-y-3">
+            <div className="flex items-center gap-2">
+              <div className="h-7 w-7 rounded-full bg-emerald-500/15 flex items-center justify-center shrink-0">
+                <CheckCircle2 className="h-4 w-4 text-emerald-600 dark:text-emerald-400" />
+              </div>
+              <div>
+                <p className="text-sm font-semibold text-emerald-700 dark:text-emerald-400">Arte Final Aprobado</p>
+                <p className="text-xs text-muted-foreground">Sube el diseño final cuando esté listo y aprobado</p>
+              </div>
+            </div>
+            <ImageUpload
+              value={form.arte_final_url}
+              onChange={url => set('arte_final_url', url || '')}
+              label="arte final"
+            />
+          </div>
+
+          <Separator />
+
+          {/* ── COLOR ── */}
           <div className="space-y-1.5">
-            <Label>Color</Label>
+            <Label>Color de identificación</Label>
             <div className="flex gap-2 flex-wrap">
               {COLORES_PREDEFINIDOS.map(c => (
                 <button key={c} type="button" onClick={() => set('color', c)}
