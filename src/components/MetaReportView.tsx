@@ -3,11 +3,14 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell, LineChart, Line, Legend } from 'recharts';
-import { TrendingUp, TrendingDown, Eye, MousePointerClick, Heart, Users, DollarSign, Share2, Bookmark, BarChart3, PencilLine, ChevronDown, ChevronUp } from 'lucide-react';
+import { TrendingUp, TrendingDown, Eye, MousePointerClick, Heart, Users, DollarSign, Share2, Bookmark, BarChart3, PencilLine, ChevronDown, ChevronUp, Download, FileSpreadsheet, FileText } from 'lucide-react';
 import type { Publicacion } from '@/hooks/usePublicaciones';
 import MetaAccountForm from './MetaAccountForm';
 import MetaPostMetricsForm from './MetaPostMetricsForm';
+import { useMetaMetricasCuenta } from '@/hooks/useMetaMetricasCuenta';
+import { exportMetaToExcel, exportMetaToPDF } from '@/lib/exportMeta';
 
 interface MetaReportViewProps {
   publicaciones: Publicacion[];
