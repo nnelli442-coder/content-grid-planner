@@ -1,10 +1,10 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useAuth } from '@/hooks/useAuth';
 import { Navigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Loader2, Lock, Mail, Sparkles, LayoutGrid, BarChart3, Calendar } from 'lucide-react';
+import { Loader2, Lock, Mail, Sparkles, LayoutGrid, BarChart3, Calendar, Moon, Sun } from 'lucide-react';
 import { toast } from 'sonner';
 
 export default function Login() {
