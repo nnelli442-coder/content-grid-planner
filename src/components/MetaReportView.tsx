@@ -3,11 +3,14 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell, LineChart, Line, Legend } from 'recharts';
-import { TrendingUp, TrendingDown, Eye, MousePointerClick, Heart, Users, DollarSign, Share2, Bookmark, BarChart3, PencilLine, ChevronDown, ChevronUp } from 'lucide-react';
+import { TrendingUp, TrendingDown, Eye, MousePointerClick, Heart, Users, DollarSign, Share2, Bookmark, BarChart3, PencilLine, ChevronDown, ChevronUp, Download, FileSpreadsheet, FileText } from 'lucide-react';
 import type { Publicacion } from '@/hooks/usePublicaciones';
 import MetaAccountForm from './MetaAccountForm';
 import MetaPostMetricsForm from './MetaPostMetricsForm';
+import { useMetaMetricasCuenta } from '@/hooks/useMetaMetricasCuenta';
+import { exportMetaToExcel, exportMetaToPDF } from '@/lib/exportMeta';
 
 interface MetaReportViewProps {
   publicaciones: Publicacion[];
@@ -55,6 +58,7 @@ function ChangeIndicator({ current, previous }: { current: number; previous: num
 
 export default function MetaReportView({ publicaciones, month, year, prevPublicaciones }: MetaReportViewProps) {
   const [showForms, setShowForms] = useState(false);
+  const { data: accountMetrics } = useMetaMetricasCuenta(month, year);
   const metaPubs = useMemo(() => publicaciones.filter(p =>
     ['Facebook', 'Instagram', 'facebook', 'instagram', 'Meta'].some(s => p.red_social?.toLowerCase().includes(s.toLowerCase()))
   ), [publicaciones]);
@@ -139,6 +143,24 @@ export default function MetaReportView({ publicaciones, month, year, prevPublica
           </p>
         </div>
         <div className="flex items-center gap-2">
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button variant="outline" size="sm">
+                <Download className="h-4 w-4 mr-1" />
+                Exportar
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end">
+              <DropdownMenuItem onClick={() => exportMetaToExcel({ metaPubs, month, year, accountMetrics, kpis, byPauta })}>
+                <FileSpreadsheet className="h-4 w-4 mr-2" />
+                Exportar Excel
+              </DropdownMenuItem>
+              <DropdownMenuItem onClick={() => exportMetaToPDF({ metaPubs, month, year, accountMetrics, kpis, byPauta })}>
+                <FileText className="h-4 w-4 mr-2" />
+                Exportar PDF
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
           <Button variant="outline" size="sm" onClick={() => setShowForms(f => !f)}>
             <PencilLine className="h-4 w-4 mr-1" />
             {showForms ? 'Ocultar formularios' : 'Cargar métricas'}
