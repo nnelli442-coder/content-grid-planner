@@ -143,6 +143,24 @@ export default function MetaReportView({ publicaciones, month, year, prevPublica
           </p>
         </div>
         <div className="flex items-center gap-2">
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button variant="outline" size="sm">
+                <Download className="h-4 w-4 mr-1" />
+                Exportar
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end">
+              <DropdownMenuItem onClick={() => exportMetaToExcel({ metaPubs, month, year, accountMetrics, kpis, byPauta })}>
+                <FileSpreadsheet className="h-4 w-4 mr-2" />
+                Exportar Excel
+              </DropdownMenuItem>
+              <DropdownMenuItem onClick={() => exportMetaToPDF({ metaPubs, month, year, accountMetrics, kpis, byPauta })}>
+                <FileText className="h-4 w-4 mr-2" />
+                Exportar PDF
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
           <Button variant="outline" size="sm" onClick={() => setShowForms(f => !f)}>
             <PencilLine className="h-4 w-4 mr-1" />
             {showForms ? 'Ocultar formularios' : 'Cargar métricas'}
