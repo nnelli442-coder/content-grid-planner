@@ -138,10 +138,25 @@ export default function MetaReportView({ publicaciones, month, year, prevPublica
             {MESES[month]} {year} · Comparado con {MESES[prevMonth]} {prevYear}
           </p>
         </div>
-        <Badge variant="outline" className="text-xs">
-          {metaPubs.length} publicación{metaPubs.length !== 1 ? 'es' : ''} Meta
-        </Badge>
+        <div className="flex items-center gap-2">
+          <Button variant="outline" size="sm" onClick={() => setShowForms(f => !f)}>
+            <PencilLine className="h-4 w-4 mr-1" />
+            {showForms ? 'Ocultar formularios' : 'Cargar métricas'}
+            {showForms ? <ChevronUp className="h-3 w-3 ml-1" /> : <ChevronDown className="h-3 w-3 ml-1" />}
+          </Button>
+          <Badge variant="outline" className="text-xs">
+            {metaPubs.length} publicación{metaPubs.length !== 1 ? 'es' : ''} Meta
+          </Badge>
+        </div>
       </div>
+
+      {/* Manual input forms */}
+      {showForms && (
+        <div className="space-y-4">
+          <MetaAccountForm month={month} year={year} />
+          <MetaPostMetricsForm publicaciones={metaPubs} />
+        </div>
+      )}
 
       {/* KPI Cards */}
       <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3">
