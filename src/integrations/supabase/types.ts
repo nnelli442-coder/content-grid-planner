@@ -83,6 +83,63 @@ export type Database = {
         }
         Relationships: []
       }
+      meta_metricas_cuenta: {
+        Row: {
+          alcance_cuenta: number | null
+          anio: number
+          clics_sitio_web: number | null
+          created_at: string
+          engagement_cuenta: number | null
+          er_cuenta: number | null
+          id: string
+          impresiones_cuenta: number | null
+          inversion_total: number | null
+          mes: number
+          notas: string | null
+          seguidores_nuevos: number | null
+          seguidores_totales: number | null
+          updated_at: string
+          user_id: string
+          visitas_perfil: number | null
+        }
+        Insert: {
+          alcance_cuenta?: number | null
+          anio: number
+          clics_sitio_web?: number | null
+          created_at?: string
+          engagement_cuenta?: number | null
+          er_cuenta?: number | null
+          id?: string
+          impresiones_cuenta?: number | null
+          inversion_total?: number | null
+          mes: number
+          notas?: string | null
+          seguidores_nuevos?: number | null
+          seguidores_totales?: number | null
+          updated_at?: string
+          user_id: string
+          visitas_perfil?: number | null
+        }
+        Update: {
+          alcance_cuenta?: number | null
+          anio?: number
+          clics_sitio_web?: number | null
+          created_at?: string
+          engagement_cuenta?: number | null
+          er_cuenta?: number | null
+          id?: string
+          impresiones_cuenta?: number | null
+          inversion_total?: number | null
+          mes?: number
+          notas?: string | null
+          seguidores_nuevos?: number | null
+          seguidores_totales?: number | null
+          updated_at?: string
+          user_id?: string
+          visitas_perfil?: number | null
+        }
+        Relationships: []
+      }
       profiles: {
         Row: {
           created_at: string

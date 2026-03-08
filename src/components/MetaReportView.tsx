@@ -1,10 +1,13 @@
-import { useMemo } from 'react';
+import { useMemo, useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell, LineChart, Line, Legend } from 'recharts';
-import { TrendingUp, TrendingDown, Eye, MousePointerClick, Heart, Users, DollarSign, Share2, Bookmark, BarChart3 } from 'lucide-react';
+import { TrendingUp, TrendingDown, Eye, MousePointerClick, Heart, Users, DollarSign, Share2, Bookmark, BarChart3, PencilLine, ChevronDown, ChevronUp } from 'lucide-react';
 import type { Publicacion } from '@/hooks/usePublicaciones';
+import MetaAccountForm from './MetaAccountForm';
+import MetaPostMetricsForm from './MetaPostMetricsForm';
 
 interface MetaReportViewProps {
   publicaciones: Publicacion[];
@@ -51,6 +54,7 @@ function ChangeIndicator({ current, previous }: { current: number; previous: num
 }
 
 export default function MetaReportView({ publicaciones, month, year, prevPublicaciones }: MetaReportViewProps) {
+  const [showForms, setShowForms] = useState(false);
   const metaPubs = useMemo(() => publicaciones.filter(p =>
     ['Facebook', 'Instagram', 'facebook', 'instagram', 'Meta'].some(s => p.red_social?.toLowerCase().includes(s.toLowerCase()))
   ), [publicaciones]);
@@ -134,10 +138,25 @@ export default function MetaReportView({ publicaciones, month, year, prevPublica
             {MESES[month]} {year} · Comparado con {MESES[prevMonth]} {prevYear}
           </p>
         </div>
-        <Badge variant="outline" className="text-xs">
-          {metaPubs.length} publicación{metaPubs.length !== 1 ? 'es' : ''} Meta
-        </Badge>
+        <div className="flex items-center gap-2">
+          <Button variant="outline" size="sm" onClick={() => setShowForms(f => !f)}>
+            <PencilLine className="h-4 w-4 mr-1" />
+            {showForms ? 'Ocultar formularios' : 'Cargar métricas'}
+            {showForms ? <ChevronUp className="h-3 w-3 ml-1" /> : <ChevronDown className="h-3 w-3 ml-1" />}
+          </Button>
+          <Badge variant="outline" className="text-xs">
+            {metaPubs.length} publicación{metaPubs.length !== 1 ? 'es' : ''} Meta
+          </Badge>
+        </div>
       </div>
+
+      {/* Manual input forms */}
+      {showForms && (
+        <div className="space-y-4">
+          <MetaAccountForm month={month} year={year} />
+          <MetaPostMetricsForm publicaciones={metaPubs} />
+        </div>
+      )}
 
       {/* KPI Cards */}
       <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3">
