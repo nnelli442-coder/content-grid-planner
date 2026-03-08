@@ -31,7 +31,7 @@ export function useMetaMetricasCuenta(mes: number, anio: number) {
         .eq('anio', anio)
         .maybeSingle();
       if (error) throw error;
-      return data as MetaMetricasCuenta | null;
+      return data as unknown as MetaMetricasCuenta | null;
     },
   });
 }
