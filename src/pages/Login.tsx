@@ -1,10 +1,10 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useAuth } from '@/hooks/useAuth';
 import { Navigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Loader2, Lock, Mail, Sparkles, LayoutGrid, BarChart3, Calendar } from 'lucide-react';
+import { Loader2, Lock, Mail, Sparkles, LayoutGrid, BarChart3, Calendar, Moon, Sun } from 'lucide-react';
 import { toast } from 'sonner';
 
 export default function Login() {
@@ -12,7 +12,12 @@ export default function Login() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [submitting, setSubmitting] = useState(false);
+  const [dark, setDark] = useState(() => document.documentElement.classList.contains('dark'));
 
+  useEffect(() => {
+    document.documentElement.classList.toggle('dark', dark);
+    localStorage.setItem('theme', dark ? 'dark' : 'light');
+  }, [dark]);
   if (loading) return (
     <div className="flex min-h-screen items-center justify-center bg-background">
       <Loader2 className="h-8 w-8 animate-spin text-primary" />
@@ -29,8 +34,17 @@ export default function Login() {
   };
 
   return (
-    <div className="min-h-screen flex bg-background">
-      {/* Left panel — branding */}
+    <div className="min-h-screen flex bg-background relative">
+      {/* Dark mode toggle */}
+      <Button
+        variant="ghost"
+        size="icon"
+        className="absolute top-4 right-4 z-20 rounded-full"
+        onClick={() => setDark(d => !d)}
+        aria-label="Cambiar tema"
+      >
+        {dark ? <Sun className="h-5 w-5" /> : <Moon className="h-5 w-5" />}
+      </Button>
       <div className="hidden lg:flex lg:w-[55%] flex-col relative overflow-hidden bg-gradient-to-br from-primary via-primary/90 to-accent-foreground">
         {/* Decorative elements */}
         <div className="absolute inset-0">
