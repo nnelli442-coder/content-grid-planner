@@ -34,8 +34,17 @@ export default function Login() {
   };
 
   return (
-    <div className="min-h-screen flex bg-background">
-      {/* Left panel — branding */}
+    <div className="min-h-screen flex bg-background relative">
+      {/* Dark mode toggle */}
+      <Button
+        variant="ghost"
+        size="icon"
+        className="absolute top-4 right-4 z-20 rounded-full"
+        onClick={() => setDark(d => !d)}
+        aria-label="Cambiar tema"
+      >
+        {dark ? <Sun className="h-5 w-5" /> : <Moon className="h-5 w-5" />}
+      </Button>
       <div className="hidden lg:flex lg:w-[55%] flex-col relative overflow-hidden bg-gradient-to-br from-primary via-primary/90 to-accent-foreground">
         {/* Decorative elements */}
         <div className="absolute inset-0">
