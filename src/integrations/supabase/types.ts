@@ -83,6 +83,69 @@ export type Database = {
         }
         Relationships: []
       }
+      meta_campanas: {
+        Row: {
+          alcance: number | null
+          configuracion_atribucion: string | null
+          costo_por_resultado: number | null
+          created_at: string
+          entrega: string | null
+          fin_informe: string
+          finalizacion: string | null
+          id: string
+          importe_gastado: number | null
+          impresiones: number | null
+          indicador_resultado: string | null
+          inicio_informe: string
+          nombre_campana: string
+          presupuesto_conjunto: string | null
+          resultados: number | null
+          tipo_presupuesto: string | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          alcance?: number | null
+          configuracion_atribucion?: string | null
+          costo_por_resultado?: number | null
+          created_at?: string
+          entrega?: string | null
+          fin_informe: string
+          finalizacion?: string | null
+          id?: string
+          importe_gastado?: number | null
+          impresiones?: number | null
+          indicador_resultado?: string | null
+          inicio_informe: string
+          nombre_campana: string
+          presupuesto_conjunto?: string | null
+          resultados?: number | null
+          tipo_presupuesto?: string | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          alcance?: number | null
+          configuracion_atribucion?: string | null
+          costo_por_resultado?: number | null
+          created_at?: string
+          entrega?: string | null
+          fin_informe?: string
+          finalizacion?: string | null
+          id?: string
+          importe_gastado?: number | null
+          impresiones?: number | null
+          indicador_resultado?: string | null
+          inicio_informe?: string
+          nombre_campana?: string
+          presupuesto_conjunto?: string | null
+          resultados?: number | null
+          tipo_presupuesto?: string | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       meta_metricas_cuenta: {
         Row: {
           alcance_cuenta: number | null
