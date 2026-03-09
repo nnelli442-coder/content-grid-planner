@@ -153,11 +153,11 @@ export default function MetaReportView({ publicaciones, month, year, prevPublica
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end">
-              <DropdownMenuItem onClick={() => exportMetaToExcel({ metaPubs, month, year, accountMetrics, kpis, byPauta })}>
+              <DropdownMenuItem onClick={() => exportMetaToExcel({ metaPubs, month, year, accountMetrics, kpis, byPauta, campanas })}>
                 <FileSpreadsheet className="h-4 w-4 mr-2" />
                 Exportar Excel
               </DropdownMenuItem>
-              <DropdownMenuItem onClick={() => exportMetaToPDF({ metaPubs, month, year, accountMetrics, kpis, byPauta })}>
+              <DropdownMenuItem onClick={() => exportMetaToPDF({ metaPubs, month, year, accountMetrics, kpis, byPauta, campanas })}>
                 <FileText className="h-4 w-4 mr-2" />
                 Exportar PDF
               </DropdownMenuItem>

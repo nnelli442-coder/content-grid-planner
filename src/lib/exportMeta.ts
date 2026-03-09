@@ -3,6 +3,7 @@ import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
 import type { Publicacion } from '@/hooks/usePublicaciones';
 import type { MetaMetricasCuenta } from '@/hooks/useMetaMetricasCuenta';
+import type { MetaCampana } from '@/hooks/useMetaCampanas';
 
 const MESES = ['Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio', 'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre'];
 
@@ -13,6 +14,7 @@ interface MetaExportData {
   accountMetrics?: MetaMetricasCuenta | null;
   kpis: { label: string; value: number; prev: number }[];
   byPauta: { name: string; posts: number; alcance: number; engagement: number }[];
+  campanas?: MetaCampana[];
 }
 
 function fmt(v: number) { return v.toLocaleString(); }
@@ -65,6 +67,24 @@ export function exportMetaToExcel(data: MetaExportData) {
   kpiRows.push([], ['ORGÁNICO VS PAUTA'], ['Tipo', 'Posts', 'Alcance', 'Engagement']);
   byPauta.forEach(b => kpiRows.push([b.name, b.posts, b.alcance, b.engagement]));
 
+  // Campañas Meta Ads
+  if (data.campanas && data.campanas.length > 0) {
+    kpiRows.push([], ['CAMPAÑAS META ADS'], []);
+    kpiRows.push(['Campaña', 'Resultados', 'Alcance', 'Impresiones', 'Gasto (USD)', 'Costo/Resultado', 'Periodo']);
+    data.campanas.forEach(c => kpiRows.push([
+      c.nombre_campana, c.resultados || 0, c.alcance || 0, c.impresiones || 0,
+      `$${(c.importe_gastado || 0).toFixed(2)}`, `$${(c.costo_por_resultado || 0).toFixed(4)}`,
+      `${c.inicio_informe} → ${c.fin_informe}`,
+    ]));
+    kpiRows.push(['TOTAL', 
+      data.campanas.reduce((a, c) => a + (c.resultados || 0), 0),
+      data.campanas.reduce((a, c) => a + (c.alcance || 0), 0),
+      data.campanas.reduce((a, c) => a + (c.impresiones || 0), 0),
+      `$${data.campanas.reduce((a, c) => a + (c.importe_gastado || 0), 0).toFixed(2)}`,
+      '', '',
+    ]);
+  }
+
   const wsKpi = XLSX.utils.aoa_to_sheet(kpiRows);
   wsKpi['!cols'] = [{ wch: 24 }, { wch: 18 }, { wch: 18 }, { wch: 14 }];
   XLSX.utils.book_append_sheet(wb, wsKpi, 'Resumen KPIs');
@@ -110,7 +130,7 @@ export function exportMetaToExcel(data: MetaExportData) {
 // ─── PDF ─────────────────────────────────────────────────────────────────────
 
 export function exportMetaToPDF(data: MetaExportData) {
-  const { metaPubs, month, year, accountMetrics, kpis, byPauta } = data;
+  const { metaPubs, month, year, accountMetrics, kpis, byPauta, campanas } = data;
   const doc = new jsPDF({ orientation: 'landscape', format: 'a4' });
   const pageW = doc.internal.pageSize.getWidth();
   const pageH = doc.internal.pageSize.getHeight();
@@ -230,6 +250,123 @@ export function exportMetaToPDF(data: MetaExportData) {
       if (d.pageNumber > 1) drawBanner('DETALLE POR PUBLICACIÓN', [139, 92, 246]);
     },
   });
+
+  // ── Page 3: Meta Ads Campaigns ──
+  if (campanas && campanas.length > 0) {
+    doc.addPage();
+    drawBanner('CAMPAÑAS META ADS', [234, 88, 12]);
+
+    const totalAlcance = campanas.reduce((a, c) => a + (c.alcance || 0), 0);
+    const totalImpresiones = campanas.reduce((a, c) => a + (c.impresiones || 0), 0);
+    const totalGasto = campanas.reduce((a, c) => a + (c.importe_gastado || 0), 0);
+    const totalResultados = campanas.reduce((a, c) => a + (c.resultados || 0), 0);
+    const avgCostRes = campanas.length > 0 ? campanas.reduce((a, c) => a + (c.costo_por_resultado || 0), 0) / campanas.length : 0;
+
+    let cy = 22;
+
+    // KPI summary boxes
+    doc.setFontSize(12);
+    doc.setFont('helvetica', 'bold');
+    doc.text('Resumen de Campañas', 14, cy);
+    cy += 8;
+
+    const kpiBoxes = [
+      { label: 'Alcance Total', value: fmt(totalAlcance), color: [59, 130, 246] as [number, number, number] },
+      { label: 'Impresiones Total', value: fmt(totalImpresiones), color: [16, 185, 129] as [number, number, number] },
+      { label: 'Gasto Total', value: `$${totalGasto.toFixed(2)}`, color: [234, 88, 12] as [number, number, number] },
+      { label: 'Costo/Resultado Prom.', value: `$${avgCostRes.toFixed(4)}`, color: [139, 92, 246] as [number, number, number] },
+    ];
+
+    const boxW = (pageW - 28 - 18) / 4;
+    kpiBoxes.forEach((box, i) => {
+      const bx = 14 + i * (boxW + 6);
+      doc.setFillColor(...box.color);
+      doc.roundedRect(bx, cy, boxW, 22, 3, 3, 'F');
+      doc.setFontSize(7);
+      doc.setFont('helvetica', 'normal');
+      doc.setTextColor(255, 255, 255);
+      doc.text(box.label, bx + boxW / 2, cy + 8, { align: 'center' });
+      doc.setFontSize(12);
+      doc.setFont('helvetica', 'bold');
+      doc.text(box.value, bx + boxW / 2, cy + 17, { align: 'center' });
+    });
+    doc.setTextColor(0, 0, 0);
+    cy += 32;
+
+    // Draw horizontal bar chart for each campaign
+    doc.setFontSize(10);
+    doc.setFont('helvetica', 'bold');
+    doc.text('Comparativa por campaña', 14, cy);
+    cy += 3;
+
+    const maxAlcance = Math.max(...campanas.map(c => c.alcance || 0), 1);
+    const barMaxW = pageW - 100;
+    campanas.forEach(c => {
+      cy += 10;
+      const nameStr = c.nombre_campana.length > 45 ? c.nombre_campana.slice(0, 45) + '…' : c.nombre_campana;
+      doc.setFontSize(7);
+      doc.setFont('helvetica', 'normal');
+      doc.setTextColor(80, 80, 80);
+      doc.text(nameStr, 14, cy);
+      cy += 4;
+
+      const alcBarW = Math.max(((c.alcance || 0) / maxAlcance) * barMaxW, 2);
+      doc.setFillColor(59, 130, 246);
+      doc.roundedRect(14, cy, alcBarW, 5, 1.5, 1.5, 'F');
+      doc.setFontSize(6);
+      doc.setTextColor(59, 130, 246);
+      doc.text(`Alcance: ${fmt(c.alcance || 0)}`, 14 + alcBarW + 3, cy + 4);
+      cy += 7;
+
+      const gastoBarW = Math.max(totalGasto > 0 ? ((c.importe_gastado || 0) / totalGasto) * barMaxW : 2, 2);
+      doc.setFillColor(234, 88, 12);
+      doc.roundedRect(14, cy, gastoBarW, 5, 1.5, 1.5, 'F');
+      doc.setFontSize(6);
+      doc.setTextColor(234, 88, 12);
+      doc.text(`Gasto: $${(c.importe_gastado || 0).toFixed(2)}`, 14 + gastoBarW + 3, cy + 4);
+      cy += 4;
+    });
+
+    doc.setTextColor(0, 0, 0);
+    cy += 10;
+
+    // Campaign detail table
+    doc.setFontSize(10);
+    doc.setFont('helvetica', 'bold');
+    doc.text('Detalle de campañas', 14, cy);
+    cy += 5;
+
+    autoTable(doc, {
+      head: [['Campaña', 'Resultados', 'Alcance', 'Impresiones', 'Gasto (USD)', 'Costo/Resultado', 'Periodo']],
+      body: campanas.map(c => [
+        c.nombre_campana,
+        (c.resultados || 0).toLocaleString(),
+        fmt(c.alcance || 0),
+        fmt(c.impresiones || 0),
+        `$${(c.importe_gastado || 0).toFixed(2)}`,
+        `$${(c.costo_por_resultado || 0).toFixed(4)}`,
+        `${c.inicio_informe} → ${c.fin_informe}`,
+      ]),
+      foot: [[
+        'TOTAL',
+        totalResultados.toLocaleString(),
+        fmt(totalAlcance),
+        fmt(totalImpresiones),
+        `$${totalGasto.toFixed(2)}`,
+        '-', '-',
+      ]],
+      startY: cy,
+      styles: { fontSize: 7, cellPadding: 2.5, overflow: 'linebreak' },
+      headStyles: { fillColor: [234, 88, 12], textColor: 255, fontStyle: 'bold' },
+      footStyles: { fillColor: [234, 88, 12], textColor: 255, fontStyle: 'bold' },
+      alternateRowStyles: { fillColor: [255, 247, 237] },
+      columnStyles: {
+        0: { cellWidth: 70 },
+        1: { halign: 'right' }, 2: { halign: 'right' }, 3: { halign: 'right' },
+        4: { halign: 'right' }, 5: { halign: 'right' },
+      },
+    });
+  }
 
   // Page numbers
   const total = (doc as any).internal.getNumberOfPages();
