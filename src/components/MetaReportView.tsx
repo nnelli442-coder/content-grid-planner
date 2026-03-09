@@ -60,6 +60,7 @@ function ChangeIndicator({ current, previous }: { current: number; previous: num
 export default function MetaReportView({ publicaciones, month, year, prevPublicaciones }: MetaReportViewProps) {
   const [showForms, setShowForms] = useState(false);
   const { data: accountMetrics } = useMetaMetricasCuenta(month, year);
+  const { data: campanas = [] } = useMetaCampanas();
   const metaPubs = useMemo(() => publicaciones.filter(p =>
     ['Facebook', 'Instagram', 'facebook', 'instagram', 'Meta'].some(s => p.red_social?.toLowerCase().includes(s.toLowerCase()))
   ), [publicaciones]);
