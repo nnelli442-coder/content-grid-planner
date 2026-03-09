@@ -5,11 +5,12 @@ import { Button } from '@/components/ui/button';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell, LineChart, Line, Legend } from 'recharts';
-import { TrendingUp, TrendingDown, Eye, MousePointerClick, Heart, Users, DollarSign, Share2, Bookmark, BarChart3, PencilLine, ChevronDown, ChevronUp, Download, FileSpreadsheet, FileText } from 'lucide-react';
+import { TrendingUp, TrendingDown, Eye, MousePointerClick, Heart, Users, DollarSign, Share2, Bookmark, BarChart3, PencilLine, ChevronDown, ChevronUp, Download, FileSpreadsheet, FileText, Megaphone } from 'lucide-react';
 import type { Publicacion } from '@/hooks/usePublicaciones';
 import MetaAccountForm from './MetaAccountForm';
 import MetaPostMetricsForm from './MetaPostMetricsForm';
 import { useMetaMetricasCuenta } from '@/hooks/useMetaMetricasCuenta';
+import { useMetaCampanas } from '@/hooks/useMetaCampanas';
 import { exportMetaToExcel, exportMetaToPDF } from '@/lib/exportMeta';
 
 interface MetaReportViewProps {
@@ -59,6 +60,7 @@ function ChangeIndicator({ current, previous }: { current: number; previous: num
 export default function MetaReportView({ publicaciones, month, year, prevPublicaciones }: MetaReportViewProps) {
   const [showForms, setShowForms] = useState(false);
   const { data: accountMetrics } = useMetaMetricasCuenta(month, year);
+  const { data: campanas = [] } = useMetaCampanas();
   const metaPubs = useMemo(() => publicaciones.filter(p =>
     ['Facebook', 'Instagram', 'facebook', 'instagram', 'Meta'].some(s => p.red_social?.toLowerCase().includes(s.toLowerCase()))
   ), [publicaciones]);
@@ -383,6 +385,161 @@ export default function MetaReportView({ publicaciones, month, year, prevPublica
           </div>
         </CardContent>
       </Card>
+
+      {/* Meta Ads Campaigns */}
+      {campanas.length > 0 && (
+        <>
+          <div className="flex items-center gap-2 mt-2">
+            <Megaphone className="h-5 w-5 text-primary" />
+            <h3 className="text-lg font-bold text-foreground">Campañas Meta Ads</h3>
+            <Badge variant="outline" className="text-xs">{campanas.length} campaña{campanas.length !== 1 ? 's' : ''}</Badge>
+          </div>
+
+          {/* Campaign KPI Cards */}
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+            <Card>
+              <CardContent className="p-4">
+                <div className="flex items-center gap-2 mb-1">
+                  <Eye className="h-4 w-4 text-primary" />
+                  <span className="text-xs text-muted-foreground">Alcance total</span>
+                </div>
+                <p className="text-lg font-bold text-foreground">
+                  {campanas.reduce((a, c) => a + (c.alcance || 0), 0).toLocaleString()}
+                </p>
+              </CardContent>
+            </Card>
+            <Card>
+              <CardContent className="p-4">
+                <div className="flex items-center gap-2 mb-1">
+                  <BarChart3 className="h-4 w-4 text-primary" />
+                  <span className="text-xs text-muted-foreground">Impresiones total</span>
+                </div>
+                <p className="text-lg font-bold text-foreground">
+                  {campanas.reduce((a, c) => a + (c.impresiones || 0), 0).toLocaleString()}
+                </p>
+              </CardContent>
+            </Card>
+            <Card>
+              <CardContent className="p-4">
+                <div className="flex items-center gap-2 mb-1">
+                  <DollarSign className="h-4 w-4 text-primary" />
+                  <span className="text-xs text-muted-foreground">Gasto total</span>
+                </div>
+                <p className="text-lg font-bold text-foreground">
+                  ${campanas.reduce((a, c) => a + (c.importe_gastado || 0), 0).toFixed(2)}
+                </p>
+              </CardContent>
+            </Card>
+            <Card>
+              <CardContent className="p-4">
+                <div className="flex items-center gap-2 mb-1">
+                  <MousePointerClick className="h-4 w-4 text-primary" />
+                  <span className="text-xs text-muted-foreground">Costo/Resultado prom.</span>
+                </div>
+                <p className="text-lg font-bold text-foreground">
+                  ${(campanas.reduce((a, c) => a + (c.costo_por_resultado || 0), 0) / campanas.length).toFixed(4)}
+                </p>
+              </CardContent>
+            </Card>
+          </div>
+
+          {/* Campaign Charts */}
+          <div className="grid md:grid-cols-2 gap-4">
+            <Card>
+              <CardHeader className="pb-2">
+                <CardTitle className="text-sm font-semibold">Alcance e Impresiones por campaña</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <ResponsiveContainer width="100%" height={250}>
+                  <BarChart data={campanas.map(c => ({
+                    name: c.nombre_campana.length > 25 ? c.nombre_campana.slice(0, 25) + '…' : c.nombre_campana,
+                    alcance: c.alcance,
+                    impresiones: c.impresiones,
+                  }))}>
+                    <CartesianGrid strokeDasharray="3 3" className="stroke-border" />
+                    <XAxis dataKey="name" tick={{ fontSize: 9 }} className="fill-muted-foreground" angle={-15} textAnchor="end" height={60} />
+                    <YAxis tick={{ fontSize: 11 }} className="fill-muted-foreground" />
+                    <Tooltip />
+                    <Bar dataKey="alcance" name="Alcance" fill={COLORS[0]} radius={[4, 4, 0, 0]} />
+                    <Bar dataKey="impresiones" name="Impresiones" fill={COLORS[1]} radius={[4, 4, 0, 0]} />
+                    <Legend />
+                  </BarChart>
+                </ResponsiveContainer>
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardHeader className="pb-2">
+                <CardTitle className="text-sm font-semibold">Gasto por campaña (USD)</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <ResponsiveContainer width="100%" height={250}>
+                  <PieChart>
+                    <Pie
+                      data={campanas.map(c => ({ name: c.nombre_campana.length > 20 ? c.nombre_campana.slice(0, 20) + '…' : c.nombre_campana, value: c.importe_gastado }))}
+                      cx="50%" cy="50%" innerRadius={50} outerRadius={90} dataKey="value"
+                      label={({ name, percent }) => `${name} ${(percent * 100).toFixed(0)}%`}
+                    >
+                      {campanas.map((_, i) => <Cell key={i} fill={COLORS[i % COLORS.length]} />)}
+                    </Pie>
+                    <Tooltip formatter={(v: number) => `$${v.toFixed(2)}`} />
+                  </PieChart>
+                </ResponsiveContainer>
+              </CardContent>
+            </Card>
+          </div>
+
+          {/* Campaign Table */}
+          <Card>
+            <CardHeader className="pb-2">
+              <CardTitle className="text-sm font-semibold">Detalle de campañas</CardTitle>
+            </CardHeader>
+            <CardContent className="p-0">
+              <div className="overflow-x-auto">
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead className="text-xs">Campaña</TableHead>
+                      <TableHead className="text-xs">Estado</TableHead>
+                      <TableHead className="text-xs text-right">Resultados</TableHead>
+                      <TableHead className="text-xs text-right">Alcance</TableHead>
+                      <TableHead className="text-xs text-right">Impresiones</TableHead>
+                      <TableHead className="text-xs text-right">Gasto (USD)</TableHead>
+                      <TableHead className="text-xs text-right">Costo/Resultado</TableHead>
+                      <TableHead className="text-xs">Periodo</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {campanas.map(c => (
+                      <TableRow key={c.id}>
+                        <TableCell className="text-xs max-w-[250px] truncate font-medium">{c.nombre_campana}</TableCell>
+                        <TableCell className="text-xs">
+                          <Badge variant="outline" className="text-xs capitalize">{c.entrega || '-'}</Badge>
+                        </TableCell>
+                        <TableCell className="text-xs text-right">{(c.resultados || 0).toLocaleString()}</TableCell>
+                        <TableCell className="text-xs text-right">{(c.alcance || 0).toLocaleString()}</TableCell>
+                        <TableCell className="text-xs text-right">{(c.impresiones || 0).toLocaleString()}</TableCell>
+                        <TableCell className="text-xs text-right">${(c.importe_gastado || 0).toFixed(2)}</TableCell>
+                        <TableCell className="text-xs text-right">${(c.costo_por_resultado || 0).toFixed(4)}</TableCell>
+                        <TableCell className="text-xs whitespace-nowrap">{c.inicio_informe} → {c.fin_informe}</TableCell>
+                      </TableRow>
+                    ))}
+                    <TableRow className="font-semibold bg-muted/50">
+                      <TableCell colSpan={2} className="text-xs">Total</TableCell>
+                      <TableCell className="text-xs text-right">{campanas.reduce((a, c) => a + (c.resultados || 0), 0).toLocaleString()}</TableCell>
+                      <TableCell className="text-xs text-right">{campanas.reduce((a, c) => a + (c.alcance || 0), 0).toLocaleString()}</TableCell>
+                      <TableCell className="text-xs text-right">{campanas.reduce((a, c) => a + (c.impresiones || 0), 0).toLocaleString()}</TableCell>
+                      <TableCell className="text-xs text-right">${campanas.reduce((a, c) => a + (c.importe_gastado || 0), 0).toFixed(2)}</TableCell>
+                      <TableCell className="text-xs text-right">-</TableCell>
+                      <TableCell className="text-xs">-</TableCell>
+                    </TableRow>
+                  </TableBody>
+                </Table>
+              </div>
+            </CardContent>
+          </Card>
+        </>
+      )}
     </div>
   );
 }
