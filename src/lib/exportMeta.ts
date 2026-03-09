@@ -3,6 +3,7 @@ import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
 import type { Publicacion } from '@/hooks/usePublicaciones';
 import type { MetaMetricasCuenta } from '@/hooks/useMetaMetricasCuenta';
+import type { MetaCampana } from '@/hooks/useMetaCampanas';
 
 const MESES = ['Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio', 'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre'];
 
@@ -13,6 +14,7 @@ interface MetaExportData {
   accountMetrics?: MetaMetricasCuenta | null;
   kpis: { label: string; value: number; prev: number }[];
   byPauta: { name: string; posts: number; alcance: number; engagement: number }[];
+  campanas?: MetaCampana[];
 }
 
 function fmt(v: number) { return v.toLocaleString(); }
