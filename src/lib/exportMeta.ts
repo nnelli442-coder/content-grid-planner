@@ -67,6 +67,24 @@ export function exportMetaToExcel(data: MetaExportData) {
   kpiRows.push([], ['ORGÁNICO VS PAUTA'], ['Tipo', 'Posts', 'Alcance', 'Engagement']);
   byPauta.forEach(b => kpiRows.push([b.name, b.posts, b.alcance, b.engagement]));
 
+  // Campañas Meta Ads
+  if (data.campanas && data.campanas.length > 0) {
+    kpiRows.push([], ['CAMPAÑAS META ADS'], []);
+    kpiRows.push(['Campaña', 'Resultados', 'Alcance', 'Impresiones', 'Gasto (USD)', 'Costo/Resultado', 'Periodo']);
+    data.campanas.forEach(c => kpiRows.push([
+      c.nombre_campana, c.resultados || 0, c.alcance || 0, c.impresiones || 0,
+      `$${(c.importe_gastado || 0).toFixed(2)}`, `$${(c.costo_por_resultado || 0).toFixed(4)}`,
+      `${c.inicio_informe} → ${c.fin_informe}`,
+    ]));
+    kpiRows.push(['TOTAL', 
+      data.campanas.reduce((a, c) => a + (c.resultados || 0), 0),
+      data.campanas.reduce((a, c) => a + (c.alcance || 0), 0),
+      data.campanas.reduce((a, c) => a + (c.impresiones || 0), 0),
+      `$${data.campanas.reduce((a, c) => a + (c.importe_gastado || 0), 0).toFixed(2)}`,
+      '', '',
+    ]);
+  }
+
   const wsKpi = XLSX.utils.aoa_to_sheet(kpiRows);
   wsKpi['!cols'] = [{ wch: 24 }, { wch: 18 }, { wch: 18 }, { wch: 14 }];
   XLSX.utils.book_append_sheet(wb, wsKpi, 'Resumen KPIs');
