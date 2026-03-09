@@ -130,7 +130,7 @@ export function exportMetaToExcel(data: MetaExportData) {
 // ─── PDF ─────────────────────────────────────────────────────────────────────
 
 export function exportMetaToPDF(data: MetaExportData) {
-  const { metaPubs, month, year, accountMetrics, kpis, byPauta } = data;
+  const { metaPubs, month, year, accountMetrics, kpis, byPauta, campanas } = data;
   const doc = new jsPDF({ orientation: 'landscape', format: 'a4' });
   const pageW = doc.internal.pageSize.getWidth();
   const pageH = doc.internal.pageSize.getHeight();
